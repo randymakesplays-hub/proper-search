@@ -1,11 +1,13 @@
 "use client";
+import dynamic from "next/dynamic";
 
 import * as React from "react";
 
 // Keep your existing components, but cast to any so prop mismatch can't break builds
 import TopBar from "./components/TopBar";
 import Sidebar from "./components/Sidebar";
-import MapPanel from "./components/MapPanel";
+const MapPanel = dynamic(() => import("./components/MapPanel"), { ssr: false });
+
 import ResultsPanel from "./components/ResultsPanel";
 import FooterBar from "./components/FooterBar";
 import PropertyDrawer from "./components/PropertyDrawer";
