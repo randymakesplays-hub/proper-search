@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* ProperSearch theme tokens */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+
+  --ps-primary: #16a34a;
+  --ps-primary-hover: #15803d;
+  --ps-soft: #ecfdf5;
+  --ps-text: #0f172a;
+  --ps-muted: #64748b;
+  --ps-border: #e2e8f0;
+  --ps-bg: #f8fafc;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+
+    --ps-primary: #16a34a;
+    --ps-primary-hover: #15803d;
+    --ps-soft: #052e16;
+    --ps-text: #e5e7eb;
+    --ps-muted: #94a3b8;
+    --ps-border: #1f2937;
+    --ps-bg: #0b1220;
+  }
+}
+
+body {
+  background: var(--ps-bg);
+  color: var(--ps-text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Leaflet map must have height/width */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* Optional: cleaner default focus */
+:focus-visible {
+  outline: 2px solid var(--ps-primary);
+  outline-offset: 2px;
+}
+
+/* Map markers (if you're using L.divIcon with these classNames) */
+.ps-marker {
+  border-radius: 9999px;
+  background: var(--ps-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+.ps-marker--active {
+  border-width: 3px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+}
