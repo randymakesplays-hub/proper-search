@@ -122,7 +122,6 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
         {bottomNavItems.map((item) => (
           <button
             key={item.label}
-            onClick={item.onClick}
             className={cn(
               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
               collapsed && "justify-center px-2",
