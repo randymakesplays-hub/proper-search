@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
@@ -14,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Proper Search",
-  description: "AI-powered property search",
+  title: "PropSearch - Property Search",
+  description: "Find your perfect property with advanced search and filters",
   icons: {
     icon: "/favicon.ico",
   },
@@ -32,6 +33,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full min-h-screen flex flex-col`}
       >
         {children}
+        <Toaster position="bottom-right" richColors closeButton />
       </body>
     </html>
   );

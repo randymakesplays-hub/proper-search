@@ -1,33 +1,41 @@
 "use client";
 
 import type { Filters, PropertyType } from "../types";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { X, User, TrendingUp, Home, MapPin, Bed, DollarSign, RotateCcw, Building2, Square } from "lucide-react";
-
-const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
-  { value: "house", label: "House" },
-  { value: "condo", label: "Condo" },
-  { value: "townhouse", label: "Townhouse" },
-  { value: "multi-family", label: "Multi-Family" },
-  { value: "land", label: "Land" },
-];
+import { X, User, TrendingUp, Home, MapPin, Bed, DollarSign, RotateCcw, Square, Building } from "lucide-react";
 
 type Props = {
   filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  onApply: () => void;
+  onApply: (filters: Filters) => void;
   onClear: () => void;
   isOpen: boolean;
   onClose: () => void;
 };
 
-export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen, onClose }: Props) {
+export default function FilterPanel({ filters: initialFilters, onApply, onClear, isOpen, onClose }: Props) {
+  const [filters, setFilters] = useState<Filters>(initialFilters);
+
+  // Sync with parent when panel opens
+  useState(() => {
+    setFilters(initialFilters);
+  });
+
   const patch = (partial: Partial<Filters>) => {
     setFilters((prev) => ({ ...prev, ...partial }));
+  };
+
+  const handleApply = () => {
+    onApply(filters);
+  };
+
+  const handleClear = () => {
+    onClear();
+    onClose();
   };
 
   const activeFilterCount = [
@@ -44,12 +52,11 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
   return (
     <div
       className={cn(
-        "absolute left-4 top-24 bottom-4 w-80 z-10 transition-all duration-300",
-        "max-md:left-0 max-md:right-0 max-md:top-0 max-md:bottom-0 max-md:w-full max-md:rounded-none",
-        isOpen ? "translate-x-0 opacity-100" : "-translate-x-[calc(100%+2rem)] opacity-0 pointer-events-none"
+        "absolute left-0 top-0 bottom-0 w-80 bg-white border-r shadow-lg z-20 transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
-      <div className="h-full bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+      <div className="h-full flex flex-col">
         {/* Header */}
         <div className="p-4 border-b flex items-center justify-between">
           <div>
@@ -117,22 +124,20 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
                 Property Type
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {PROPERTY_TYPES.map((type) => (
+              <div className="grid grid-cols-2 gap-2">
+                {(["house", "condo", "townhouse", "multi-family", "land"] as PropertyType[]).map((type) => (
                   <button
-                    key={type.value}
-                    onClick={() =>
-                      patch({ propertyType: filters.propertyType === type.value ? undefined : type.value })
-                    }
+                    key={type}
+                    onClick={() => patch({ propertyType: filters.propertyType === type ? undefined : type })}
                     className={cn(
-                      "px-3 py-2 rounded-lg font-medium text-sm transition-all flex items-center gap-1.5",
-                      filters.propertyType === type.value
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted hover:bg-muted/80"
+                      "flex items-center gap-2 p-2.5 rounded-lg text-sm font-medium transition-all border",
+                      filters.propertyType === type
+                        ? "bg-primary text-white border-primary"
+                        : "bg-white text-muted-foreground border-border hover:border-primary/50"
                     )}
                   >
-                    <Building2 className="w-3.5 h-3.5" />
-                    {type.label}
+                    <Building className="w-4 h-4" />
+                    <span className="capitalize">{type}</span>
                   </button>
                 ))}
               </div>
@@ -145,7 +150,7 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
               </h3>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
+                  <label className="text-sm font-medium mb-2 flex items-center gap-2">
                     <Bed className="w-4 h-4 text-muted-foreground" />
                     Minimum Bedrooms
                   </label>
@@ -155,10 +160,10 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
                         key={num}
                         onClick={() => patch({ minBeds: filters.minBeds === num ? undefined : num })}
                         className={cn(
-                          "flex-1 h-10 rounded-lg font-medium text-sm transition-all",
+                          "flex-1 h-10 rounded-lg font-medium text-sm transition-all border",
                           filters.minBeds === num
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted hover:bg-muted/80"
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white border-border hover:border-primary/50"
                         )}
                       >
                         {num}+
@@ -168,46 +173,46 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
+                  <label className="text-sm font-medium mb-2 flex items-center gap-2">
                     <Square className="w-4 h-4 text-muted-foreground" />
                     Minimum Sqft
                   </label>
                   <div className="flex gap-2">
-                    {[1000, 1500, 2000, 2500].map((sqft) => (
+                    {[500, 1000, 1500, 2000].map((sqft) => (
                       <button
                         key={sqft}
                         onClick={() => patch({ minSqft: filters.minSqft === sqft ? undefined : sqft })}
                         className={cn(
-                          "flex-1 h-10 rounded-lg font-medium text-xs transition-all",
+                          "flex-1 h-10 rounded-lg font-medium text-xs transition-all border",
                           filters.minSqft === sqft
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted hover:bg-muted/80"
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white border-border hover:border-primary/50"
                         )}
                       >
-                        {sqft.toLocaleString()}
+                        {sqft.toLocaleString()}+
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium mb-1.5 flex items-center gap-2">
+                  <label className="text-sm font-medium mb-2 flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-muted-foreground" />
                     Maximum Price
                   </label>
-                  <div className="flex gap-2">
-                    {[200000, 400000, 600000, 800000].map((price) => (
+                  <div className="flex gap-2 flex-wrap">
+                    {[200000, 400000, 600000, 800000, 1000000].map((price) => (
                       <button
                         key={price}
                         onClick={() => patch({ maxPrice: filters.maxPrice === price ? undefined : price })}
                         className={cn(
-                          "flex-1 h-10 rounded-lg font-medium text-xs transition-all",
+                          "flex-1 min-w-[60px] h-10 rounded-lg font-medium text-xs transition-all border",
                           filters.maxPrice === price
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted hover:bg-muted/80"
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white border-border hover:border-primary/50"
                         )}
                       >
-                        ${(price / 1000)}k
+                        ${price >= 1000000 ? `${price / 1000000}M` : `${price / 1000}k`}
                       </button>
                     ))}
                   </div>
@@ -230,10 +235,10 @@ export default function Sidebar({ filters, setFilters, onApply, onClear, isOpen,
 
         {/* Footer */}
         <div className="p-4 border-t space-y-2">
-          <Button onClick={onApply} className="w-full h-11 text-base font-semibold">
+          <Button onClick={handleApply} className="w-full h-11 text-base font-semibold">
             Apply Filters
           </Button>
-          <Button variant="ghost" onClick={onClear} className="w-full h-9 text-sm">
+          <Button variant="ghost" onClick={handleClear} className="w-full h-9 text-sm">
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset All
           </Button>
@@ -268,7 +273,7 @@ function FilterToggle({
         <div
           className={cn(
             "w-9 h-9 rounded-lg flex items-center justify-center",
-            checked ? "bg-primary text-primary-foreground" : "bg-muted"
+            checked ? "bg-primary text-white" : "bg-muted"
           )}
         >
           {icon}

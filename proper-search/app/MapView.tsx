@@ -14,14 +14,13 @@ import type { ResultItem } from "./types";
 type Props = {
   items: ResultItem[];
   activeId: string | null;
-  focus?: { lat: number; lng: number } | null;
   onMarkerClick: (id: string) => void;
 };
 
-const DEFAULT_CENTER: [number, number] = [29.7604, -95.3698]; // Houston
-const DEFAULT_ZOOM = 10;
+const DEFAULT_CENTER: [number, number] = [25.7617, -80.1918]; // Miami
+const DEFAULT_ZOOM = 11;
 
-// Custom marker icon using your /public files
+// Custom marker icon
 const markerIcon = L.icon({
   iconUrl: "/marker-icon.png",
   iconRetinaUrl: "/marker-icon-2x.png",
@@ -33,13 +32,21 @@ const markerIcon = L.icon({
 });
 
 function toLatLng(item: ResultItem): [number, number] | null {
-  const lat = Number((item as any).lat);
-  const lng = Number((item as any).lng);
+  const lat = Number(item.lat);
+  const lng = Number(item.lng);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   return [lat, lng];
 }
 
-/** Fits bounds ONLY when the set of items changes (not every click). */
+function formatPrice(n: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+/** Fits bounds when the set of items changes */
 function FitToItems({ items, boundsKey }: { items: ResultItem[]; boundsKey: string }) {
   const map = useMap();
 
@@ -60,7 +67,7 @@ function FitToItems({ items, boundsKey }: { items: ResultItem[]; boundsKey: stri
 }
 
 /** Fly to active pin when active changes */
-function FlyToActive({ active }: { active?: ResultItem }) {
+function FlyToActive({ active }: { active: ResultItem | undefined }) {
   const map = useMap();
 
   useEffect(() => {
@@ -68,18 +75,17 @@ function FlyToActive({ active }: { active?: ResultItem }) {
     const pos = toLatLng(active);
     if (!pos) return;
 
-    map.flyTo(pos, Math.max(map.getZoom(), 12), { duration: 0.6 });
+    map.flyTo(pos, Math.max(map.getZoom(), 13), { duration: 0.6 });
   }, [map, active]);
 
   return null;
 }
 
 export default function MapView({ items, activeId, onMarkerClick }: Props) {
-  const boundsKey = (items ?? []).map((i: any) => i.id).join("|");
+  const boundsKey = items.map((i) => i.id).join("|");
+  const active = activeId ? items.find((i) => i.id === activeId) : undefined;
 
-  const active = activeId ? (items ?? []).find((i: any) => i.id === activeId) : undefined;
-
-  const firstPos = items && items.length > 0 ? toLatLng(items[0]) : null;
+  const firstPos = items.length > 0 ? toLatLng(items[0]) : null;
   const initialCenter = firstPos ?? DEFAULT_CENTER;
 
   return (
@@ -87,41 +93,50 @@ export default function MapView({ items, activeId, onMarkerClick }: Props) {
       center={initialCenter}
       zoom={DEFAULT_ZOOM}
       scrollWheelZoom
-      className="h-full w-full"
+      className="h-full w-full rounded-xl"
     >
       <TileLayer
-        attribution='&copy; OpenStreetMap contributors &copy; CARTO'
+        attribution='&copy; OpenStreetMap &copy; CARTO'
         url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         subdomains={["a", "b", "c", "d"]}
       />
 
       <FitToItems items={items} boundsKey={boundsKey} />
-      <FlyToActive active={active as any} />
+      <FlyToActive active={active} />
 
-      {(items ?? []).map((p: any) => {
-        const pos = toLatLng(p);
+      {items.map((item) => {
+        const pos = toLatLng(item);
         if (!pos) return null;
 
         return (
           <Marker
-            key={p.id ?? `${pos[0]}-${pos[1]}`}
+            key={item.id}
             position={pos}
             icon={markerIcon}
             eventHandlers={{
-              click: () => onMarkerClick(p.id),
+              click: () => onMarkerClick(item.id),
             }}
           >
             <Popup>
-              <div style={{ fontSize: 12 }}>
-                <div>
-                  <b>ID:</b> {p.id}
+              <div className="min-w-[180px]">
+                <div className="font-semibold text-sm mb-1">{item.address}</div>
+                <div className="text-xs text-gray-600 mb-2">
+                  {item.city}, {item.state} {item.zip}
                 </div>
-                <div>
-                  <b>Lat:</b> {String(p.lat)}
+                <div className="text-base font-bold text-green-600 mb-2">
+                  {formatPrice(item.price)}
                 </div>
-                <div>
-                  <b>Lng:</b> {String(p.lng)}
+                <div className="flex gap-3 text-xs text-gray-600 mb-2">
+                  <span>{item.beds} beds</span>
+                  <span>{item.baths} baths</span>
+                  <span>{item.sqft.toLocaleString()} sqft</span>
                 </div>
+                <button
+                  onClick={() => onMarkerClick(item.id)}
+                  className="w-full text-xs text-center py-1.5 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                >
+                  View Details
+                </button>
               </div>
             </Popup>
           </Marker>

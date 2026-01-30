@@ -1,47 +1,40 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
 import type { ResultItem } from "../types";
 
-const MapView = dynamic(() => import("../MapView"), {
+// Dynamic import to avoid SSR issues with Google Maps
+const GoogleMapView = dynamic(() => import("../GoogleMapView"), {
   ssr: false,
   loading: () => (
-    <div className="h-full w-full rounded-xl border bg-white flex items-center justify-center text-sm text-zinc-500">
-      Loading map…
+    <div className="h-full w-full flex items-center justify-center bg-slate-100">
+      <div className="text-center">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <div className="text-muted-foreground text-sm">Loading map...</div>
+      </div>
     </div>
   ),
 });
-const AnyMapView = MapView as any;
 
-type Focus = {
-  lat: number;
-  lng: number;
-} | null;
-
-export default function MapPanel({
-  items,
-  activeId,
-  onMarkerClick,
-}: {
+type Props = {
   items: ResultItem[];
   activeId: string | null;
-  onMarkerClick: (id: string) => void;
-}) {
-  const focus: Focus = useMemo(() => {
-    if (!activeId) return null;
-    const found = items.find((i) => i.id === activeId);
-    if (!found) return null;
-    return { lat: found.lat, lng: found.lng };
-  }, [activeId, items]);
+  hoveredId: string | null;
+  onPick: (id: string) => void;
+  onHover: (id: string | null) => void;
+  fitBoundsKey: number;
+};
 
+export default function MapPanel({ items, activeId, hoveredId, onPick, onHover, fitBoundsKey }: Props) {
   return (
-    <div className="h-full w-full overflow-hidden rounded-xl border bg-white">
-      <AnyMapView
-  items={items}
-  activeId={activeId}
-  focus={focus}
-  onMarkerClick={onMarkerClick}
+    <div className="h-full w-full">
+      <GoogleMapView
+        items={items}
+        activeId={activeId}
+        hoveredId={hoveredId}
+        onMarkerClick={onPick}
+        onMarkerHover={onHover}
+        fitBoundsKey={fitBoundsKey}
       />
     </div>
   );

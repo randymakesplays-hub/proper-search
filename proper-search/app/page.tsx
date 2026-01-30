@@ -1,186 +1,410 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import TopBar from "./components/TopBar";
-import Sidebar from "./components/Sidebar";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+
+import LeftSidebar, { type PageId } from "./components/LeftSidebar";
+import SearchBar from "./components/SearchBar";
 import MapPanel from "./components/MapPanel";
 import ResultsPanel from "./components/ResultsPanel";
+import PropertyDrawer from "./components/PropertyDrawer";
+import FilterPanel from "./components/FilterPanel";
+import AccountPage from "./components/AccountPage";
+import MyPropertiesPage from "./components/MyPropertiesPage";
+
 import { mockItems } from "./data/mockItems";
-
-import type { Filters, ResultItem } from "./types";
-
-// ✅ IMPORTANT:
-// Replace this with your real items source (the mock data you already had working).
-// Example (if you had it before): import { items } from "./mockData";
-
+import type { Filters, ResultItem, SortOption } from "./types";
 
 const DEFAULT_FILTERS: Filters = {
+  absentee: false,
+  highEquity: false,
+  vacant: false,
   city: "",
-  minBeds: "",
-  maxPrice: "",
-  flags: { absentee: false, highEquity: false, vacant: false },
-} as any;
+  minBeds: undefined,
+  maxPrice: undefined,
+  propertyType: undefined,
+  minSqft: undefined,
+};
+
+// Helper to load favorites from localStorage
+function loadFavorites(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem("propertyFavorites");
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+// Helper to save favorites to localStorage
+function saveFavorites(ids: string[]) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem("propertyFavorites", JSON.stringify(ids));
+  } catch {
+    // ignore
+  }
+}
+
+// User info (would come from auth in real app)
+const USER_NAME = "Randy Wilson";
+const USER_EMAIL = "rawrealestate101@gmail.com";
 
 export default function Page() {
-  // Draft (user typing/toggling)
-  const [draftQuery, setDraftQuery] = useState("");
-  const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
+  // Current page/view
+  const [activePage, setActivePage] = useState<PageId>("search");
 
-  // Applied (drives map + results)
-  const [appliedQuery, setAppliedQuery] = useState("");
-  const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS);
+  // search - live search with debounce
+  const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Active + selection
+  // Debounce search query for live search
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 200);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // filters
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+
+  // selection
   const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  // ✅ BOSS APPLY: copies draft -> applied
-  const applySearch = () => {
-    setAppliedQuery(draftQuery);
-    setAppliedFilters(draftFilters);
-    setActiveId(null);
-    setSelectedIds([]);
+  // favorites
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
+  // sorting
+  const [sortOption, setSortOption] = useState<SortOption>("price-desc");
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
+    setFavoriteIds(loadFavorites());
+  }, []);
+
+  // Save favorites to localStorage when they change
+  useEffect(() => {
+    if (favoriteIds.length > 0 || localStorage.getItem("propertyFavorites")) {
+      saveFavorites(favoriteIds);
+    }
+  }, [favoriteIds]);
+
+  const toggleFavorite = useCallback((id: string) => {
+    setFavoriteIds((prev) => {
+      const isFavorited = prev.includes(id);
+      const newFavorites = isFavorited
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      toast.success(isFavorited ? "Removed from favorites" : "Added to favorites");
+      return newFavorites;
+    });
+  }, []);
+
+  // panel visibility
+  const [showFilters, setShowFilters] = useState(false);
+  const [showResults, setShowResults] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Map bounds key - only changes when user explicitly searches
+  const [fitBoundsKey, setFitBoundsKey] = useState(0);
+
+  // Track if user has performed a search (map starts clean)
+  const [hasSearched, setHasSearched] = useState(false);
+
+  // Quick filter toggles
+  const toggleQuickFilter = (key: keyof Filters) => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+    setHasSearched(true);
+    setFitBoundsKey((k) => k + 1);
   };
 
-  // Filter ONLY uses applied state
-  const filteredItems = useMemo(() => {
-    const city = (appliedFilters as any)?.city?.trim?.().toLowerCase?.() ?? "";
-    const minBedsRaw = (appliedFilters as any)?.minBeds ?? "";
-    const maxPriceRaw = (appliedFilters as any)?.maxPrice ?? "";
-    const flags =
-      (appliedFilters as any)?.flags ?? {
-        absentee: false,
-        highEquity: false,
-        vacant: false,
-      };
+  // Called when user clicks "Search" button or presses Enter
+  const applySearch = () => {
+    setHasSearched(true);
+    setActiveId(null);
+    setSelectedIds([]);
+    setFitBoundsKey((k) => k + 1);
+  };
 
-    const minBeds = minBedsRaw === "" ? null : Number(minBedsRaw);
-    const maxPrice = maxPriceRaw === "" ? null : Number(maxPriceRaw);
-    const q = (appliedQuery || "").toLowerCase().trim();
+  // Called when filters are applied from the filter panel
+  const applyFilters = (newFilters: Filters) => {
+    setFilters(newFilters);
+    setHasSearched(true);
+    setActiveId(null);
+    setSelectedIds([]);
+    setFitBoundsKey((k) => k + 1);
+    setShowFilters(false);
+    toast.success("Filters applied");
+  };
 
-    return (mockItems ?? []).filter((p: any) => {
+  const clearAll = () => {
+    setSearchQuery("");
+    setDebouncedQuery("");
+    setFilters(DEFAULT_FILTERS);
+    setHasSearched(false);
+    setActiveId(null);
+    setSelectedIds([]);
+    setDrawerOpen(false);
+    setFitBoundsKey((k) => k + 1);
+    toast.info("Filters cleared");
+  };
 
-      // city
-      if (city) {
-        const pCity = (p.city ?? p.City ?? "").toString().toLowerCase();
-        if (!pCity.includes(city)) return false;
-      }
+  const filteredItems: ResultItem[] = useMemo(() => {
+    const q = debouncedQuery.trim().toLowerCase();
+    const city = (filters.city ?? "").trim().toLowerCase();
+    const minBeds = filters.minBeds;
+    const maxPrice = filters.maxPrice;
+    const propertyType = filters.propertyType;
+    const minSqft = filters.minSqft;
 
-      // beds
-      if (minBeds !== null) {
-        const beds = Number(p.beds ?? p.Beds ?? 0);
-        if (Number.isFinite(minBeds) && beds < minBeds) return false;
-      }
+    const mustAbsentee = !!filters.absentee;
+    const mustHighEquity = !!filters.highEquity;
+    const mustVacant = !!filters.vacant;
 
-      // price
-      if (maxPrice !== null) {
-        const price = Number(p.price ?? p.Price ?? 0);
-        if (Number.isFinite(maxPrice) && price > maxPrice) return false;
-      }
+    const filtered = mockItems.filter((item) => {
+      const tags = (item.tags ?? []).map((t) => t.toLowerCase());
+      if (mustAbsentee && !tags.includes("absentee")) return false;
+      if (mustHighEquity && !tags.includes("highequity") && !tags.includes("high equity"))
+        return false;
+      if (mustVacant && !tags.includes("vacant")) return false;
 
-      // quick flags (only filter if ON)
-      if (flags.absentee) {
-        const v = Boolean(p.absentee ?? p.Absentee);
-        if (!v) return false;
-      }
-      if (flags.vacant) {
-        const v = Boolean(p.vacant ?? p.Vacant);
-        if (!v) return false;
-      }
-      if (flags.highEquity) {
-        const eq = p.equity ?? p.Equity ?? 0;
-        const eqNum =
-          typeof eq === "string" ? Number(eq.replace("%", "")) : Number(eq);
-        const isHigh =
-          Boolean(p.highEquity ?? p.HighEquity) ||
-          (Number.isFinite(eqNum) && eqNum >= 40);
-        if (!isHigh) return false;
-      }
+      if (city && !item.city?.toLowerCase().includes(city)) return false;
+      if (typeof minBeds === "number" && item.beds < minBeds) return false;
+      if (typeof maxPrice === "number" && item.price > maxPrice) return false;
+      if (propertyType && item.propertyType !== propertyType) return false;
+      if (typeof minSqft === "number" && item.sqft < minSqft) return false;
 
-      // query (address/city/state/zip)
       if (q) {
-        const hay = [
-          p.address,
-          p.Address,
-          p.city,
-          p.City,
-          p.state,
-          p.State,
-          p.zip,
-          p.Zip,
-        ]
+        const haystack = [item.address, item.city, item.state, item.zip, String(item.price)]
           .filter(Boolean)
           .join(" ")
           .toLowerCase();
-
-        if (!hay.includes(q)) return false;
+        if (!haystack.includes(q)) return false;
       }
 
       return true;
     });
-  }, [appliedFilters, appliedQuery]);
 
-  // Results selection helpers (matching your ResultsPanel props)
-  const toggleSelect = (id: string) => {
+    // Sort results
+    return [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "beds-desc":
+          return b.beds - a.beds;
+        case "sqft-desc":
+          return b.sqft - a.sqft;
+        case "equity-desc":
+          return (b.equityPct ?? 0) - (a.equityPct ?? 0);
+        case "newest":
+          return (a.daysOnMarket ?? 999) - (b.daysOnMarket ?? 999);
+        default:
+          return 0;
+      }
+    });
+  }, [debouncedQuery, filters, sortOption]);
+
+  // Items to display on map/results (empty until user searches)
+  const displayItems = hasSearched ? filteredItems : [];
+
+  // Get saved/favorited properties
+  const savedProperties = useMemo(() => {
+    return mockItems.filter((item) => favoriteIds.includes(item.id));
+  }, [favoriteIds]);
+
+  const activeItem = activeId ? mockItems.find((x) => x.id === activeId) ?? null : null;
+
+  const handlePick = (id: string) => {
+    setActiveId(id);
+    setDrawerOpen(true);
+  };
+
+  const handleViewPropertyFromMyProperties = (id: string) => {
+    setActiveId(id);
+    setDrawerOpen(true);
+  };
+
+  const onToggleSelect = (id: string) => {
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const selectAll = () => {
-    const allIds = filteredItems.map((x: any) => x.id).filter(Boolean);
-    setSelectedIds(allIds);
+  const exportSelected = useCallback(() => {
+    const selectedItems = displayItems.filter((item) => selectedIds.includes(item.id));
+    if (selectedItems.length === 0) {
+      toast.error("No properties selected");
+      return;
+    }
+
+    const headers = [
+      "id", "address", "city", "state", "zip", "price", "beds", "baths",
+      "sqft", "equityPct", "propertyType", "yearBuilt", "lat", "lng", "tags"
+    ];
+
+    const rows = selectedItems.map((item) => [
+      item.id,
+      `"${item.address}"`,
+      `"${item.city}"`,
+      item.state,
+      item.zip,
+      item.price,
+      item.beds,
+      item.baths,
+      item.sqft,
+      item.equityPct ?? "",
+      item.propertyType,
+      item.yearBuilt ?? "",
+      item.lat,
+      item.lng,
+      `"${(item.tags ?? []).join("|")}"`,
+    ]);
+
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `properties_export_${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast.success(`Exported ${selectedItems.length} properties`);
+  }, [displayItems, selectedIds]);
+
+  // Render the main content based on active page
+  const renderMainContent = () => {
+    switch (activePage) {
+      case "account":
+        return <AccountPage userName={USER_NAME} userEmail={USER_EMAIL} />;
+
+      case "myProperties":
+        return (
+          <MyPropertiesPage
+            savedProperties={savedProperties}
+            favoriteIds={favoriteIds}
+            onViewProperty={handleViewPropertyFromMyProperties}
+          />
+        );
+
+      case "contacts":
+      case "campaigns":
+      case "dialer":
+        return (
+          <div className="flex-1 flex items-center justify-center bg-muted/30">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2 capitalize">{activePage}</h2>
+              <p className="text-muted-foreground">This feature is coming soon</p>
+            </div>
+          </div>
+        );
+
+      case "search":
+      default:
+        return (
+          <>
+            {/* Top Search Bar */}
+            <SearchBar
+              query={searchQuery}
+              setQuery={setSearchQuery}
+              onSearch={applySearch}
+              onClear={clearAll}
+              onToggleFilters={() => setShowFilters(!showFilters)}
+              showFilters={showFilters}
+              resultCount={displayItems.length}
+              absenteeActive={filters.absentee}
+              highEquityActive={filters.highEquity}
+              vacantActive={filters.vacant}
+              onToggleAbsentee={() => toggleQuickFilter("absentee")}
+              onToggleHighEquity={() => toggleQuickFilter("highEquity")}
+              onToggleVacant={() => toggleQuickFilter("vacant")}
+            />
+
+            {/* Map and Results Area */}
+            <div className="flex-1 flex relative overflow-hidden">
+              {/* Filter Panel (slide out) */}
+              <FilterPanel
+                filters={filters}
+                onApply={applyFilters}
+                onClear={clearAll}
+                isOpen={showFilters}
+                onClose={() => setShowFilters(false)}
+              />
+
+              {/* Map */}
+              <div className="flex-1 relative">
+                <MapPanel
+                  items={displayItems}
+                  activeId={activeId}
+                  hoveredId={hoveredId}
+                  onPick={handlePick}
+                  onHover={setHoveredId}
+                  fitBoundsKey={fitBoundsKey}
+                />
+              </div>
+
+              {/* Results Panel (right side) */}
+              <ResultsPanel
+                items={displayItems}
+                activeId={activeId}
+                hoveredId={hoveredId}
+                selectedIds={selectedIds}
+                favoriteIds={favoriteIds}
+                onPick={handlePick}
+                onHover={setHoveredId}
+                onToggleSelect={onToggleSelect}
+                onToggleFavorite={toggleFavorite}
+                onSelectAll={() => setSelectedIds(displayItems.map((x) => x.id))}
+                onClearSelection={() => setSelectedIds([])}
+                onExport={exportSelected}
+                isOpen={showResults}
+                onClose={() => setShowResults(!showResults)}
+                sortOption={sortOption}
+                onSortChange={setSortOption}
+              />
+            </div>
+          </>
+        );
+    }
   };
 
-  const clearSelection = () => setSelectedIds([]);
-
-  const pick = (id: string) => setActiveId(id);
-
   return (
-    <div className="min-h-screen bg-zinc-950 text-white">
-      {/* Top bar above everything */}
-      <div className="relative z-30">
-        <TopBar
-          query={draftQuery}
-          onQueryChange={setDraftQuery}
-          onSearch={applySearch}
-          onClear={() => setDraftQuery("")}
-        />
+    <div className="h-screen w-screen flex overflow-hidden bg-background">
+      {/* Left Sidebar */}
+      <LeftSidebar 
+        userName={USER_NAME} 
+        activePage={activePage}
+        onPageChange={setActivePage}
+      />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {renderMainContent()}
       </div>
 
-      {/* ✅ Z-INDEX FIX: side panels always clickable, map stays in middle */}
-      <div className="grid grid-cols-[360px_1fr_360px] gap-4 p-4 relative">
-        {/* LEFT */}
-        <div className="relative z-20 pointer-events-auto">
-          <Sidebar
-            filters={draftFilters}
-            onChange={setDraftFilters}
-            onApply={applySearch}
-          />
-        </div>
-
-        {/* MIDDLE */}
-        <div className="relative z-0 overflow-hidden rounded-2xl">
-          <MapPanel
-            items={filteredItems}
-            activeId={activeId}
-            onMarkerClick={pick}
-          />
-        </div>
-
-        {/* RIGHT */}
-        <div className="relative z-20 pointer-events-auto">
-          <ResultsPanel
-            items={filteredItems}
-            activeId={activeId}
-            selectedIds={selectedIds}
-            onPick={pick}
-            onToggleSelect={toggleSelect}
-            onSelectAll={selectAll}
-            onClearSelection={clearSelection}
-          />
-        </div>
-      </div>
+      {/* Property detail drawer */}
+      <PropertyDrawer
+        item={activeItem}
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        isFavorite={activeItem ? favoriteIds.includes(activeItem.id) : false}
+        onToggleFavorite={() => activeItem && toggleFavorite(activeItem.id)}
+      />
     </div>
   );
 }
