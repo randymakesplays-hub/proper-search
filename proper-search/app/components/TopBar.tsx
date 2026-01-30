@@ -1,55 +1,46 @@
 "use client";
 
-import Image from "next/image";
-
 type Props = {
   query: string;
-  onQueryChange: (value: string) => void;
+  onQueryChange: (next: string) => void;
   onSearch: () => void;
   onClear: () => void;
 };
 
 export default function TopBar({ query, onQueryChange, onSearch, onClear }: Props) {
   return (
-    <header className="w-full border-b bg-white">
-      <div className="h-14 px-4 flex items-center gap-4">
-        {/* Brand */}
-        <div className="flex items-center gap-3 min-w-[240px]">
-          <div className="relative h-7 w-7">
-            <Image src="/logo.png" alt="Proper Search" fill className="object-contain" priority />
-          </div>
-          <div className="leading-tight">
-            <div className="font-semibold text-zinc-900">Proper Search</div>
-            <div className="text-xs text-zinc-500">AI property search</div>
-          </div>
+    <div className="w-full bg-white border-b border-zinc-200">
+      <div className="mx-auto max-w-[1400px] px-4 py-3 flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-[220px]">
+          <div className="font-semibold text-zinc-900 leading-tight">Proper Search</div>
+          <div className="text-xs text-zinc-500 -mt-1">AI property search</div>
         </div>
 
-        {/* Search */}
-        <div className="flex-1">
+        <div className="flex-1 flex items-center gap-3">
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder={`Try: "absentee", "equity 40", "price < 300000", "Houston"`}
-            className="w-full h-9 rounded-md border px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-200"
+            placeholder='Try: "Miami", "Brickell", "zip 33131"'
+            className="w-full h-10 rounded-lg border border-zinc-200 px-4 text-zinc-900 placeholder:text-zinc-400 outline-none focus:ring-2 focus:ring-zinc-200"
           />
-        </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-2">
           <button
             onClick={onSearch}
-            className="h-9 px-3 rounded-md bg-green-600 text-white text-sm font-medium hover:bg-green-700"
+            className="h-10 px-4 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 active:scale-[0.99]"
+            type="button"
           >
             Run Search
           </button>
+
           <button
             onClick={onClear}
-            className="h-9 px-3 rounded-md border text-sm font-medium hover:bg-zinc-50"
+            className="h-10 px-4 rounded-lg border border-zinc-200 text-zinc-700 font-semibold hover:bg-zinc-50 active:scale-[0.99]"
+            type="button"
           >
             Clear
           </button>
         </div>
       </div>
-    </header>
+    </div>
   );
 }

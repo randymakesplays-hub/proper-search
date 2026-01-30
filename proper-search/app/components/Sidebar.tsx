@@ -1,3 +1,5 @@
+"use client";
+
 import type { Filters } from "../types";
 
 type Props = {
@@ -23,71 +25,71 @@ export default function Sidebar({ filters, onChange, onApply }: Props) {
 
   const chipClass = (on: boolean) =>
     [
-      "rounded-full border px-3 py-1 text-xs font-medium",
-      on ? "bg-zinc-900 text-white border-zinc-900" : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50",
+      "rounded-full border px-3 py-1 text-xs font-semibold",
+      on
+        ? "bg-zinc-900 text-white border-zinc-900"
+        : "bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50",
     ].join(" ");
 
   return (
-    <div className="p-4">
-      <div className="text-xs font-semibold text-zinc-500">QUICK FILTERS</div>
+    <div className="h-full rounded-2xl bg-zinc-950 border border-zinc-800 p-4">
+      <div className="text-xs font-semibold text-zinc-400 mb-2">QUICK FILTERS</div>
 
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button className={chipClass(!!safeFlags.absentee)} onClick={() => setFlag("absentee")} type="button">
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button type="button" className={chipClass(!!safeFlags.absentee)} onClick={() => setFlag("absentee")}>
           Absentee
         </button>
-        <button className={chipClass(!!safeFlags.highEquity)} onClick={() => setFlag("highEquity")} type="button">
+        <button type="button" className={chipClass(!!safeFlags.highEquity)} onClick={() => setFlag("highEquity")}>
           High Equity
         </button>
-        <button className={chipClass(!!safeFlags.vacant)} onClick={() => setFlag("vacant")} type="button">
+        <button type="button" className={chipClass(!!safeFlags.vacant)} onClick={() => setFlag("vacant")}>
           Vacant
         </button>
       </div>
 
-      <div className="mt-4 space-y-3">
+      <div className="space-y-3">
         <div>
-          <div className="text-[11px] font-medium text-zinc-600">City</div>
+          <div className="text-xs text-zinc-400 mb-1">City</div>
           <input
-            className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none"
             value={(filters as any)?.city ?? ""}
             onChange={(e) => setField("city", e.target.value)}
-            placeholder="Houston"
+            placeholder="Miami"
+            className="w-full h-10 rounded-lg bg-white text-zinc-900 px-3 border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-200"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <div className="text-[11px] font-medium text-zinc-600">Min beds</div>
+            <div className="text-xs text-zinc-400 mb-1">Min beds</div>
             <input
-              type="number"
-              className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none"
               value={(filters as any)?.minBeds ?? ""}
-              onChange={(e) => setField("minBeds", e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => setField("minBeds", e.target.value)}
               placeholder="3"
+              className="w-full h-10 rounded-lg bg-white text-zinc-900 px-3 border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-200"
             />
           </div>
 
           <div>
-            <div className="text-[11px] font-medium text-zinc-600">Max price</div>
+            <div className="text-xs text-zinc-400 mb-1">Max price</div>
             <input
-              type="number"
-              className="mt-1 w-full rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm outline-none"
               value={(filters as any)?.maxPrice ?? ""}
-              onChange={(e) => setField("maxPrice", e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => setField("maxPrice", e.target.value)}
               placeholder="300000"
+              className="w-full h-10 rounded-lg bg-white text-zinc-900 px-3 border border-zinc-200 outline-none focus:ring-2 focus:ring-zinc-200"
             />
           </div>
         </div>
 
         <button
           onClick={onApply}
-          className="mt-2 w-full rounded-md bg-zinc-900 py-2 text-sm font-medium text-white hover:bg-zinc-800"
           type="button"
+          className="w-full h-11 rounded-lg bg-zinc-800 text-white font-semibold hover:bg-zinc-700 active:scale-[0.99]"
         >
           Apply
         </button>
 
-        <div className="pt-2 text-[11px] text-zinc-500">
-          Tip: leave Min beds / Max price blank to show all filter properties.
+        <div className="text-xs text-zinc-500">
+          Tip: leave Min beds / Max price blank to show all filtered properties.
         </div>
       </div>
     </div>

@@ -1,362 +1,186 @@
-"use client"; 
-import dynamic from "next/dynamic";
+"use client";
 
-import * as React from "react";
-
-// Keep your existing components, but cast to any so prop mismatch can't break builds
+import { useMemo, useState } from "react";
 import TopBar from "./components/TopBar";
 import Sidebar from "./components/Sidebar";
-const MapPanel = dynamic(() => import("./components/MapPanel"), { ssr: false });
-
+import MapPanel from "./components/MapPanel";
 import ResultsPanel from "./components/ResultsPanel";
-import FooterBar from "./components/FooterBar";
-import PropertyDrawer from "./components/PropertyDrawer";
+import { mockItems } from "./data/mockItems";
 
-import type { ResultItem } from "./types";
+import type { Filters, ResultItem } from "./types";
 
-const TopBarAny = TopBar as any;
-const SidebarAny = Sidebar as any;
-const MapPanelAny = MapPanel as any;
-const ResultsPanelAny = ResultsPanel as any;
-const FooterBarAny = FooterBar as any;
-const PropertyDrawerAny = PropertyDrawer as any;
+// ✅ IMPORTANT:
+// Replace this with your real items source (the mock data you already had working).
+// Example (if you had it before): import { items } from "./mockData";
 
-type FiltersLike = {
-  city: string;
-  minBeds?: number | "";
-  maxPrice?: number | "";
-  flags: {
-    absentee: boolean;
-    highEquity: boolean;
-    vacant: boolean;
-  };
-};
 
-type SavedSearch = {
-  id: string;
-  name: string;
-  createdAt: number;
-  query: string;
-  filters: FiltersLike;
-};
-
-const DEFAULT_FILTERS: FiltersLike = {
-  city: "Houston",
+const DEFAULT_FILTERS: Filters = {
+  city: "",
   minBeds: "",
   maxPrice: "",
   flags: { absentee: false, highEquity: false, vacant: false },
-};
+} as any;
 
-const SAVED_SEARCHES_KEY = "propersearch_saved_searches_v1";
-const LAST_SAVED_ID_KEY = "properSearch:lastSavedId";
+export default function Page() {
+  // Draft (user typing/toggling)
+  const [draftQuery, setDraftQuery] = useState("");
+  const [draftFilters, setDraftFilters] = useState<Filters>(DEFAULT_FILTERS);
 
-function uid() {
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
+  // Applied (drives map + results)
+  const [appliedQuery, setAppliedQuery] = useState("");
+  const [appliedFilters, setAppliedFilters] = useState<Filters>(DEFAULT_FILTERS);
 
-function safeParse<T>(raw: string | null, fallback: T): T {
-  try {
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
+  // Active + selection
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-function loadSavedSearches(): SavedSearch[] {
-  if (typeof window === "undefined") return [];
-  return safeParse<SavedSearch[]>(window.localStorage.getItem(SAVED_SEARCHES_KEY), []);
-}
+  // ✅ BOSS APPLY: copies draft -> applied
+  const applySearch = () => {
+    setAppliedQuery(draftQuery);
+    setAppliedFilters(draftFilters);
+    setActiveId(null);
+    setSelectedIds([]);
+  };
 
-function persistSavedSearches(items: SavedSearch[]) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(SAVED_SEARCHES_KEY, JSON.stringify(items));
-}
+  // Filter ONLY uses applied state
+  const filteredItems = useMemo(() => {
+    const city = (appliedFilters as any)?.city?.trim?.().toLowerCase?.() ?? "";
+    const minBedsRaw = (appliedFilters as any)?.minBeds ?? "";
+    const maxPriceRaw = (appliedFilters as any)?.maxPrice ?? "";
+    const flags =
+      (appliedFilters as any)?.flags ?? {
+        absentee: false,
+        highEquity: false,
+        vacant: false,
+      };
 
-function normalize(s: string) {
-  return (s ?? "").toString().trim().toLowerCase();
-}
+    const minBeds = minBedsRaw === "" ? null : Number(minBedsRaw);
+    const maxPrice = maxPriceRaw === "" ? null : Number(maxPriceRaw);
+    const q = (appliedQuery || "").toLowerCase().trim();
 
-/**
- * Very defensive filter function:
- * - Works even if ResultItem fields are different (uses "as any")
- */
-function applyFilters(items: ResultItem[], query: string, filters: FiltersLike): ResultItem[] {
-  const q = normalize(query);
+    return (mockItems ?? []).filter((p: any) => {
 
-  return items.filter((it) => {
-    const x: any = it as any;
+      // city
+      if (city) {
+        const pCity = (p.city ?? p.City ?? "").toString().toLowerCase();
+        if (!pCity.includes(city)) return false;
+      }
 
-    // City
-    if (filters.city && normalize(x.city) !== normalize(filters.city)) return false;
+      // beds
+      if (minBeds !== null) {
+        const beds = Number(p.beds ?? p.Beds ?? 0);
+        if (Number.isFinite(minBeds) && beds < minBeds) return false;
+      }
 
-    // Beds
-    const beds = Number(x.beds ?? x.bedrooms ?? 0);
-    if (filters.minBeds !== "" && filters.minBeds !== undefined) {
-      if (beds < Number(filters.minBeds)) return false;
-    }
+      // price
+      if (maxPrice !== null) {
+        const price = Number(p.price ?? p.Price ?? 0);
+        if (Number.isFinite(maxPrice) && price > maxPrice) return false;
+      }
 
-    // Price
-    const price = Number(x.price ?? x.listPrice ?? x.askingPrice ?? 0);
-    if (filters.maxPrice !== "" && filters.maxPrice !== undefined) {
-      if (price > Number(filters.maxPrice)) return false;
-    }
+      // quick flags (only filter if ON)
+      if (flags.absentee) {
+        const v = Boolean(p.absentee ?? p.Absentee);
+        if (!v) return false;
+      }
+      if (flags.vacant) {
+        const v = Boolean(p.vacant ?? p.Vacant);
+        if (!v) return false;
+      }
+      if (flags.highEquity) {
+        const eq = p.equity ?? p.Equity ?? 0;
+        const eqNum =
+          typeof eq === "string" ? Number(eq.replace("%", "")) : Number(eq);
+        const isHigh =
+          Boolean(p.highEquity ?? p.HighEquity) ||
+          (Number.isFinite(eqNum) && eqNum >= 40);
+        if (!isHigh) return false;
+      }
 
-    // Flags
-    if (filters.flags.absentee && !Boolean(x.absentee)) return false;
-    if (filters.flags.highEquity && !Boolean(x.highEquity)) return false;
-    if (filters.flags.vacant && !Boolean(x.vacant)) return false;
-
-    // Query search (address / owner / anything stringy)
-    if (q) {
-      const hay = normalize(
-        [
-          x.address,
-          x.street,
-          x.ownerName,
-          x.name,
-          x.zip,
-          x.county,
-          x.state,
-          x.city,
-          x.apn,
+      // query (address/city/state/zip)
+      if (q) {
+        const hay = [
+          p.address,
+          p.Address,
+          p.city,
+          p.City,
+          p.state,
+          p.State,
+          p.zip,
+          p.Zip,
         ]
           .filter(Boolean)
           .join(" ")
-      );
-      if (!hay.includes(q)) return false;
-    }
+          .toLowerCase();
 
-    return true;
-  });
-}
+        if (!hay.includes(q)) return false;
+      }
 
-/**
- * Fallback mock data so the app still builds even if your real dataset wiring changes.
- * If you already have real items, it will override this.
- */
-const FALLBACK_ITEMS: ResultItem[] = [
-  {
-    id: "1",
-    city: "Houston",
-  } as any,
-  {
-    id: "2",
-    city: "Houston",
-  } as any,
-  {
-    id: "3",
-    city: "Houston",
-  } as any,
-];
-
-export default function Page() {
-  // DATA
-  const [allItems, setAllItems] = React.useState<ResultItem[]>(FALLBACK_ITEMS);
-
-  // SEARCH STATE
-  const [query, setQuery] = React.useState("");
-  const [filtersDraft, setFiltersDraft] = React.useState<FiltersLike>(DEFAULT_FILTERS);
-  const [filtersApplied, setFiltersApplied] = React.useState<FiltersLike>(DEFAULT_FILTERS);
-
-  // RESULTS + SELECTION
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
-
-  // SAVED SEARCHES
-  const [savedSearches, setSavedSearches] = React.useState<SavedSearch[]>(() => loadSavedSearches());
-  const [selectedSavedId, setSelectedSavedId] = React.useState<string | null>(null);
-  const [saveName, setSaveName] = React.useState("");
-
-  // FILTERED RESULTS
-  const filtered = React.useMemo(() => {
-    return applyFilters(allItems, query, filtersApplied);
-  }, [allItems, query, filtersApplied]);
-
-  // ---------- AUTO LOAD LAST SAVED SEARCH ID ----------
-  React.useEffect(() => {
-    const lastId = localStorage.getItem(LAST_SAVED_ID_KEY);
-    if (!lastId) return;
-    setSelectedSavedId(lastId);
-  }, []);
-
-  // ---------- LOAD SELECTED SAVED SEARCH (when ID changes) ----------
-  React.useEffect(() => {
-    if (!selectedSavedId) return;
-    const found = savedSearches.find((s) => s.id === selectedSavedId);
-    if (!found) return;
-
-    setQuery(found.query ?? "");
-    setFiltersDraft(found.filters);
-    setFiltersApplied(found.filters);
-
-    // Persist last used
-    localStorage.setItem(LAST_SAVED_ID_KEY, found.id);
-  }, [selectedSavedId, savedSearches]);
-
-  // ---------- ACTIONS ----------
-  const applyDraftFilters = React.useCallback(() => {
-    setFiltersApplied(filtersDraft);
-    setSelectedIds(new Set());
-    setActiveId(null);
-  }, [filtersDraft]);
-
-  const resetFilters = React.useCallback(() => {
-    setFiltersDraft(DEFAULT_FILTERS);
-    setFiltersApplied(DEFAULT_FILTERS);
-    setQuery("");
-    setSelectedIds(new Set());
-    setActiveId(null);
-    setSelectedSavedId(null);
-    localStorage.removeItem(LAST_SAVED_ID_KEY);
-  }, []);
-
-  const toggleSelect = React.useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+      return true;
     });
-  }, []);
+  }, [appliedFilters, appliedQuery]);
 
-  const selectAll = React.useCallback(() => {
-    setSelectedIds(new Set(filtered.map((x: any) => x.id)));
-  }, [filtered]);
+  // Results selection helpers (matching your ResultsPanel props)
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
 
-  const clearSelection = React.useCallback(() => {
-    setSelectedIds(new Set());
-  }, []);
+  const selectAll = () => {
+    const allIds = filteredItems.map((x: any) => x.id).filter(Boolean);
+    setSelectedIds(allIds);
+  };
 
-  const saveCurrentSearch = React.useCallback(() => {
-    const name =
-      saveName.trim() ||
-      `Search ${new Date().toLocaleString(undefined, {
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-      })}`;
+  const clearSelection = () => setSelectedIds([]);
 
-    const newItem: SavedSearch = {
-      id: uid(),
-      name,
-      createdAt: Date.now(),
-      query,
-      filters: filtersApplied,
-    };
+  const pick = (id: string) => setActiveId(id);
 
-    // Overwrite priority:
-    // 1) If a saved search is selected -> overwrite it
-    // 2) Else if same name exists -> overwrite it
-    // 3) Else -> create new
-    const existingById = selectedSavedId ? savedSearches.find((s) => s.id === selectedSavedId) : null;
-    const existingByName = savedSearches.find((s) => normalize(s.name) === normalize(name));
-
-    let next: SavedSearch[];
-
-    if (existingById) {
-      next = savedSearches.map((s) =>
-        s.id === existingById.id ? { ...newItem, id: existingById.id, createdAt: s.createdAt } : s
-      );
-      setSelectedSavedId(existingById.id);
-      localStorage.setItem(LAST_SAVED_ID_KEY, existingById.id);
-    } else if (existingByName) {
-      next = savedSearches.map((s) =>
-        s.id === existingByName.id ? { ...newItem, id: existingByName.id, createdAt: s.createdAt } : s
-      );
-      setSelectedSavedId(existingByName.id);
-      localStorage.setItem(LAST_SAVED_ID_KEY, existingByName.id);
-    } else {
-      next = [newItem, ...savedSearches];
-      setSelectedSavedId(newItem.id);
-      localStorage.setItem(LAST_SAVED_ID_KEY, newItem.id);
-    }
-
-    setSavedSearches(next);
-    persistSavedSearches(next);
-    setSaveName("");
-  }, [saveName, query, filtersApplied, savedSearches, selectedSavedId]);
-
-  const deleteSelectedSaved = React.useCallback(() => {
-    if (!selectedSavedId) return;
-    const next = savedSearches.filter((s) => s.id !== selectedSavedId);
-    setSavedSearches(next);
-    persistSavedSearches(next);
-    setSelectedSavedId(null);
-    localStorage.removeItem(LAST_SAVED_ID_KEY);
-  }, [savedSearches, selectedSavedId]);
-
-  const pickItem = React.useCallback((id: string) => {
-    setActiveId(id);
-  }, []);
-
-  // ---------- RENDER ----------
   return (
-    <div className="min-h-screen flex flex-col">
-      <TopBarAny />
+    <div className="min-h-screen bg-zinc-950 text-white">
+      {/* Top bar above everything */}
+      <div className="relative z-30">
+        <TopBar
+          query={draftQuery}
+          onQueryChange={setDraftQuery}
+          onSearch={applySearch}
+          onClear={() => setDraftQuery("")}
+        />
+      </div>
 
-      <main className="flex-1 grid grid-cols-12 gap-0">
-        {/* Left */}
-        <aside className="col-span-3 border-r overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <SidebarAny
-              query={query}
-              setQuery={setQuery}
-              filtersDraft={filtersDraft}
-              setFiltersDraft={setFiltersDraft}
-              onApply={applyDraftFilters}
-              onReset={resetFilters}
-              // Saved searches UI hooks:
-              savedSearches={savedSearches}
-              selectedSavedId={selectedSavedId}
-              setSelectedSavedId={setSelectedSavedId}
-              saveName={saveName}
-              setSaveName={setSaveName}
-              onSave={saveCurrentSearch}
-              onDeleteSaved={deleteSelectedSaved}
-            />
-          </div>
-        </aside>
+      {/* ✅ Z-INDEX FIX: side panels always clickable, map stays in middle */}
+      <div className="grid grid-cols-[360px_1fr_360px] gap-4 p-4 relative">
+        {/* LEFT */}
+        <div className="relative z-20 pointer-events-auto">
+          <Sidebar
+            filters={draftFilters}
+            onChange={setDraftFilters}
+            onApply={applySearch}
+          />
+        </div>
 
-        {/* Middle */}
-        <section className="col-span-6 border-r overflow-hidden">
-          <div className="h-full">
-            <MapPanelAny
-              items={filtered}
-              activeId={activeId}
-              setActiveId={setActiveId}
-              selectedIds={selectedIds}
-              onPick={(id: string) => pickItem(id)}
-            />
-          </div>
-        </section>
+        {/* MIDDLE */}
+        <div className="relative z-0 overflow-hidden rounded-2xl">
+          <MapPanel
+            items={filteredItems}
+            activeId={activeId}
+            onMarkerClick={pick}
+          />
+        </div>
 
-        {/* Right */}
-        <aside className="col-span-3 overflow-hidden">
-          <div className="h-full overflow-y-auto">
-            <ResultsPanelAny
-              items={filtered}
-              activeId={activeId}
-              setActiveId={setActiveId}
-              selectedIds={selectedIds}
-              setSelectedIds={setSelectedIds}
-              onToggleSelect={toggleSelect}
-              onSelectAll={selectAll}
-              onClearSelection={clearSelection}
-              onPick={(id: string) => pickItem(id)}
-            />
-          </div>
-        </aside>
-      </main>
-
-      <PropertyDrawerAny
-        activeId={activeId}
-        setActiveId={setActiveId}
-        items={filtered}
-      />
-
-      <FooterBarAny />
+        {/* RIGHT */}
+        <div className="relative z-20 pointer-events-auto">
+          <ResultsPanel
+            items={filteredItems}
+            activeId={activeId}
+            selectedIds={selectedIds}
+            onPick={pick}
+            onToggleSelect={toggleSelect}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+          />
+        </div>
+      </div>
     </div>
   );
 }

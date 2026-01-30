@@ -1,134 +1,137 @@
 "use client";
 
-import * as React from "react";
-import type { ResultItem } from "./types";
+import type { ResultItem } from "../types";
 
-type SelectedIds = Set<string> | string[] | undefined;
-
-function isSelected(selectedIds: SelectedIds, id: string) {
-  if (!selectedIds) return false;
-  return Array.isArray(selectedIds) ? selectedIds.includes(id) : selectedIds.has(id);
-}
-
-function selectedCount(selectedIds: SelectedIds) {
-  if (!selectedIds) return 0;
-  return Array.isArray(selectedIds) ? selectedIds.length : selectedIds.size;
-}
-
-function formatMoney(n?: number) {
-  const v = typeof n === "number" && Number.isFinite(n) ? n : 0;
-  return v.toLocaleString(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
-}
-
-export default function ResultsPanel(props: {
-  items?: ResultItem[];
+type Props = {
+  items: ResultItem[];
   activeId: string | null;
-  selectedIds: SelectedIds;
+  selectedIds: string[];
   onPick: (id: string) => void;
   onToggleSelect: (id: string) => void;
   onSelectAll: () => void;
   onClearSelection: () => void;
-}) {
-  const items = props.items ?? [];
-  const { activeId, selectedIds, onPick, onToggleSelect, onSelectAll, onClearSelection } = props;
+};
 
+export default function ResultsPanel({
+  items,
+  activeId,
+  selectedIds,
+  onPick,
+  onToggleSelect,
+  onSelectAll,
+  onClearSelection,
+}: Props) {
   return (
-    <div className="h-full min-h-0 flex flex-col">
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <div className="text-xs text-zinc-600">
-          <span className="font-medium text-zinc-900">{items.length}</span> Results
-          {selectedCount(selectedIds) > 0 && (
-            <span className="ml-2 text-zinc-500">
-              ({selectedCount(selectedIds)} selected)
-            </span>
-          )}
+    <div className="h-full rounded-2xl bg-zinc-950 border border-zinc-800 p-4 overflow-y-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-sm font-semibold text-zinc-200">
+          Results ({items.length})
         </div>
 
         <div className="flex gap-2">
           <button
-            className="rounded-md border px-2 py-1 text-xs"
             onClick={onSelectAll}
-            type="button"
+            className="h-8 px-3 rounded-lg border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-900"
           >
             Select All
           </button>
           <button
-            className="rounded-md border px-2 py-1 text-xs"
             onClick={onClearSelection}
-            type="button"
+            className="h-8 px-3 rounded-lg border border-zinc-700 text-zinc-200 text-xs hover:bg-zinc-900"
           >
             Clear
           </button>
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-auto p-2 space-y-2">
-        {items.map((it: any) => {
-          const active = activeId === it.id;
-          const checked = isSelected(selectedIds, it.id);
+      {/* DEBUG – DO NOT REMOVE YET */}
+      <div className="text-xs text-red-400 mb-3">
+        DEBUG → first city: {items?.[0]?.city ?? "NONE"} | price:{" "}
+        {items?.[0]?.price ?? "NONE"}
+      </div>
+
+      {/* Empty state */}
+      {items.length === 0 && (
+        <div className="text-sm text-zinc-400">
+          No results. Click <b>Apply</b>.
+        </div>
+      )}
+
+      {/* Cards */}
+      <div className="space-y-3">
+        {items.map((item) => {
+          const selected = selectedIds.includes(item.id);
+          const active = activeId === item.id;
 
           return (
             <div
-              key={it.id}
+              key={item.id}
+              onClick={() => onPick(item.id)}
               className={[
-                "rounded-xl border p-3 cursor-pointer",
-                active ? "ring-2 ring-zinc-900/20" : "",
+                "rounded-xl border p-3 cursor-pointer transition",
+                active
+                  ? "border-emerald-500 bg-emerald-500/10"
+                  : "border-zinc-800 hover:bg-zinc-900",
               ].join(" ")}
-              onClick={() => onPick(it.id)}
             >
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={() => onToggleSelect(it.id)}
-                  onClick={(e) => e.stopPropagation()}
-                  className="mt-1"
-                />
-
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">{formatMoney(it.price)}</div>
-                  <div className="text-xs text-zinc-700">{it.address}</div>
-                  <div className="text-xs text-zinc-500">
-                    {it.city}, {it.state} {it.zip}
+              <div className="flex items-start justify-between">
+                <div>
+                  <div className="text-sm font-medium text-zinc-100">
+                    {item.address}
                   </div>
-
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-700">
-                      {it.beds ?? 0} beds
-                    </span>
-                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-700">
-                      {it.baths ?? 0} baths
-                    </span>
-                    <span className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-700">
-                      {it.sqft ?? 0} sqft
-                    </span>
-                    <span className="rounded-full bg-emerald-100 px-2 py-1 text-[10px] text-emerald-800">
-                      {it.equityPct ?? 0}% equity
-                    </span>
-
-                    {(it.tags ?? []).slice(0, 3).map((t: string, idx: number) => (
-                      <span
-                        key={`${it.id}-${t}-${idx}`}
-                        className="rounded-full bg-zinc-100 px-2 py-1 text-[10px] text-zinc-700"
-                      >
-                        {t}
-                      </span>
-                    ))}
+                  <div className="text-xs text-zinc-400">
+                    {item.city}, {item.state} {item.zip}
                   </div>
                 </div>
+
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={(e) => {
+                    e.stopPropagation();
+                    onToggleSelect(item.id);
+                  }}
+                />
+              </div>
+
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <Pill label={`$${item.price.toLocaleString()}`} />
+                <Pill label={`${item.beds} beds`} />
+                <Pill label={`${item.baths} baths`} />
+                <Pill label={`${item.sqft} sqft`} />
+                {item.equityPct != null && (
+                  <Pill
+                    label={`${item.equityPct}% equity`}
+                    accent
+                  />
+                )}
               </div>
             </div>
           );
         })}
-
-        {items.length === 0 && (
-          <div className="p-3 text-sm text-zinc-500">No results. Try loosening filters.</div>
-        )}
       </div>
     </div>
+  );
+}
+
+function Pill({
+  label,
+  accent,
+}: {
+  label: string;
+  accent?: boolean;
+}) {
+  return (
+    <span
+      className={[
+        "inline-flex items-center rounded-full px-3 py-1 border text-xs font-medium",
+        accent
+          ? "bg-emerald-100 text-emerald-900 border-emerald-200"
+          : "bg-zinc-900 text-zinc-200 border-zinc-700",
+      ].join(" ")}
+    >
+      {label}
+    </span>
   );
 }
