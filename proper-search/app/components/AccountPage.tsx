@@ -154,7 +154,7 @@ export default function AccountPage({ userName, userEmail }: Props) {
             <div className="bg-primary rounded-xl p-4 text-white">
               <h3 className="font-semibold mb-2">Complete your marketing profile!</h3>
               <p className="text-sm opacity-90 mb-4">
-                Please complete your profile to experience Proper Search's add-on services, 
+                Please complete your profile to experience ProperSearch's add-on services, 
                 such as emails, postcards, and landing pages.
               </p>
               <Button variant="secondary" size="sm">

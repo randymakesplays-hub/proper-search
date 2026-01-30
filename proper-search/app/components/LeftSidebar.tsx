@@ -65,7 +65,7 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
           className="shrink-0"
         />
         {!collapsed && (
-          <span className="font-bold text-lg text-foreground">Proper Search</span>
+          <span className="font-bold text-lg text-foreground">ProperSearch</span>
         )}
       </div>
 
