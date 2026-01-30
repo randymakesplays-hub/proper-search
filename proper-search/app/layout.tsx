@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "PropSearch - Property Search",
+  title: "Proper Search - Property Search",
   description: "Find your perfect property with advanced search and filters",
   icons: {
     icon: "/favicon.ico",

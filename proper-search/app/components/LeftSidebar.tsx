@@ -11,11 +11,11 @@ import {
   LogOut,
   HelpCircle,
   MessageCircle,
-  MapPin,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 
 export type PageId = "search" | "myProperties" | "contacts" | "campaigns" | "dialer" | "account";
 
@@ -56,12 +56,16 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
       )}
     >
       {/* Logo */}
-      <div className="p-4 border-b flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shrink-0">
-          <MapPin className="w-5 h-5 text-white" />
-        </div>
+      <div className="p-4 border-b flex items-center gap-2">
+        <Image
+          src="/proper-search-logo.png"
+          alt="Proper Search"
+          width={40}
+          height={40}
+          className="shrink-0"
+        />
         {!collapsed && (
-          <span className="font-bold text-lg text-foreground">PropSearch</span>
+          <span className="font-bold text-lg text-foreground">Proper Search</span>
         )}
       </div>
 
