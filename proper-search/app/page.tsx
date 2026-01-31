@@ -11,6 +11,7 @@ import PropertyDrawer from "./components/PropertyDrawer";
 import FilterPanel from "./components/FilterPanel";
 import AccountPage from "./components/AccountPage";
 import MyPropertiesPage from "./components/MyPropertiesPage";
+import LoginPage from "./components/LoginPage";
 
 import { mockItems } from "./data/mockItems";
 import type { Filters, ResultItem, SortOption } from "./types";
@@ -52,6 +53,9 @@ const USER_NAME = "Randy Wilson";
 const USER_EMAIL = "rawrealestate101@gmail.com";
 
 export default function Page() {
+  // Authentication state (demo mode - no real auth)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   // Current page/view
   const [activePage, setActivePage] = useState<PageId>("search");
 
@@ -382,6 +386,11 @@ export default function Page() {
         );
     }
   };
+
+  // Show login page if not logged in
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  }
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-background">
