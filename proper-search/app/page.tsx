@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase, fetchProperties } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 
 import LeftSidebar, { type PageId } from "./components/LeftSidebar";
@@ -15,8 +15,8 @@ import AccountPage from "./components/AccountPage";
 import MyPropertiesPage from "./components/MyPropertiesPage";
 import LoginPage from "./components/LoginPage";
 
-import { mockItems } from "./data/mockItems";
 import type { Filters, ResultItem, SortOption } from "./types";
+import { loadLastSearch, saveLastSearch } from "./components/SearchBar";
 
 const DEFAULT_FILTERS: Filters = {
   absentee: false,
@@ -58,15 +58,33 @@ export default function Page() {
   // Check for existing session on mount
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Handle invalid refresh token by signing out
+      if (error?.message?.includes('Refresh Token') || error?.message?.includes('refresh_token')) {
+        console.warn('Invalid session, signing out:', error.message);
+        supabase.auth.signOut();
+        setUser(null);
+      } else {
+        setUser(session?.user ?? null);
+      }
+      setIsLoading(false);
+    }).catch((err) => {
+      console.warn('Auth error, signing out:', err);
+      supabase.auth.signOut();
+      setUser(null);
       setIsLoading(false);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      (event, session) => {
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          supabase.auth.signOut();
+          setUser(null);
+        } else {
+          setUser(session?.user ?? null);
+        }
       }
     );
 
@@ -80,10 +98,14 @@ export default function Page() {
   // Current page/view
   const [activePage, setActivePage] = useState<PageId>("search");
 
-  // search - live search with debounce
+  // search state
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Property data from Supabase
+  const [items, setItems] = useState<ResultItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Debounce search query for live search
   useEffect(() => {
@@ -149,29 +171,69 @@ export default function Page() {
   // Track if user has performed a search (map starts clean)
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Quick filter toggles
+  // Search properties from Supabase
+  const searchProperties = useCallback(async (query: string, currentFilters: Filters) => {
+    setIsSearching(true);
+    try {
+      const { data, error } = await fetchProperties({
+        query,
+        filters: currentFilters,
+        limit: 500,
+      });
+
+      if (error) {
+        toast.error("Failed to search properties");
+        console.error(error);
+        return;
+      }
+
+      setItems(data ?? []);
+      setHasSearched(true);
+      setActiveId(null);
+      setSelectedIds([]);
+      setFitBoundsKey((k) => k + 1);
+      
+      // Save as last search for auto-load
+      saveLastSearch(query, currentFilters);
+    } catch (err) {
+      toast.error("Failed to search properties");
+      console.error(err);
+    } finally {
+      setIsSearching(false);
+    }
+  }, []);
+
+  // Auto-load last search on mount
+  useEffect(() => {
+    const lastSearch = loadLastSearch();
+    if (lastSearch) {
+      setSearchQuery(lastSearch.query);
+      setDebouncedQuery(lastSearch.query);
+      setFilters(lastSearch.filters);
+      // Trigger search after a short delay to ensure state is set
+      setTimeout(() => {
+        searchProperties(lastSearch.query, lastSearch.filters);
+      }, 100);
+    }
+  }, [searchProperties]);
+
+  // Quick filter toggles - triggers search
   const toggleQuickFilter = (key: keyof Filters) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-    setHasSearched(true);
-    setFitBoundsKey((k) => k + 1);
+    const newFilters = { ...filters, [key]: !filters[key] };
+    setFilters(newFilters);
+    searchProperties(debouncedQuery, newFilters);
   };
 
   // Called when user clicks "Search" button or presses Enter
   const applySearch = () => {
-    setHasSearched(true);
-    setActiveId(null);
-    setSelectedIds([]);
-    setFitBoundsKey((k) => k + 1);
+    searchProperties(debouncedQuery, filters);
   };
 
   // Called when filters are applied from the filter panel
   const applyFilters = (newFilters: Filters) => {
     setFilters(newFilters);
-    setHasSearched(true);
-    setActiveId(null);
-    setSelectedIds([]);
-    setFitBoundsKey((k) => k + 1);
     setShowFilters(false);
+    searchProperties(debouncedQuery, newFilters);
     toast.success("Filters applied");
   };
 
@@ -180,6 +242,7 @@ export default function Page() {
     setDebouncedQuery("");
     setFilters(DEFAULT_FILTERS);
     setHasSearched(false);
+    setItems([]);
     setActiveId(null);
     setSelectedIds([]);
     setDrawerOpen(false);
@@ -187,44 +250,15 @@ export default function Page() {
     toast.info("Filters cleared");
   };
 
-  const filteredItems: ResultItem[] = useMemo(() => {
-    const q = debouncedQuery.trim().toLowerCase();
-    const city = (filters.city ?? "").trim().toLowerCase();
-    const minBeds = filters.minBeds;
-    const maxPrice = filters.maxPrice;
-    const propertyType = filters.propertyType;
-    const minSqft = filters.minSqft;
+  // Load a saved search
+  const handleLoadSearch = (query: string, newFilters: Filters) => {
+    setFilters(newFilters);
+    searchProperties(query, newFilters);
+  };
 
-    const mustAbsentee = !!filters.absentee;
-    const mustHighEquity = !!filters.highEquity;
-    const mustVacant = !!filters.vacant;
-
-    const filtered = mockItems.filter((item) => {
-      const tags = (item.tags ?? []).map((t) => t.toLowerCase());
-      if (mustAbsentee && !tags.includes("absentee")) return false;
-      if (mustHighEquity && !tags.includes("highequity") && !tags.includes("high equity"))
-        return false;
-      if (mustVacant && !tags.includes("vacant")) return false;
-
-      if (city && !item.city?.toLowerCase().includes(city)) return false;
-      if (typeof minBeds === "number" && item.beds < minBeds) return false;
-      if (typeof maxPrice === "number" && item.price > maxPrice) return false;
-      if (propertyType && item.propertyType !== propertyType) return false;
-      if (typeof minSqft === "number" && item.sqft < minSqft) return false;
-
-      if (q) {
-        const haystack = [item.address, item.city, item.state, item.zip, String(item.price)]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        if (!haystack.includes(q)) return false;
-      }
-
-      return true;
-    });
-
-    // Sort results
-    return [...filtered].sort((a, b) => {
+  // Sort results (filtering is done server-side now)
+  const sortedItems: ResultItem[] = useMemo(() => {
+    return [...items].sort((a, b) => {
       switch (sortOption) {
         case "price-asc":
           return a.price - b.price;
@@ -238,21 +272,23 @@ export default function Page() {
           return (b.equityPct ?? 0) - (a.equityPct ?? 0);
         case "newest":
           return (a.daysOnMarket ?? 999) - (b.daysOnMarket ?? 999);
+        case "ppsqft-asc":
+          return ((a.pricePerSqft ?? a.price / a.sqft) - (b.pricePerSqft ?? b.price / b.sqft));
         default:
           return 0;
       }
     });
-  }, [debouncedQuery, filters, sortOption]);
+  }, [items, sortOption]);
 
   // Items to display on map/results (empty until user searches)
-  const displayItems = hasSearched ? filteredItems : [];
+  const displayItems = hasSearched ? sortedItems : [];
 
-  // Get saved/favorited properties
+  // Get saved/favorited properties (from current items or need to fetch)
   const savedProperties = useMemo(() => {
-    return mockItems.filter((item) => favoriteIds.includes(item.id));
-  }, [favoriteIds]);
+    return items.filter((item) => favoriteIds.includes(item.id));
+  }, [items, favoriteIds]);
 
-  const activeItem = activeId ? mockItems.find((x) => x.id === activeId) ?? null : null;
+  const activeItem = activeId ? items.find((x) => x.id === activeId) ?? null : null;
 
   const handlePick = (id: string) => {
     setActiveId(id);
@@ -352,6 +388,9 @@ export default function Page() {
               onToggleFilters={() => setShowFilters(!showFilters)}
               showFilters={showFilters}
               resultCount={displayItems.length}
+              isSearching={isSearching}
+              filters={filters}
+              onLoadSearch={handleLoadSearch}
               absenteeActive={filters.absentee}
               highEquityActive={filters.highEquity}
               vacantActive={filters.vacant}

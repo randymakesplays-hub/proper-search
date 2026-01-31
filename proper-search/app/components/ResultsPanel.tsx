@@ -31,6 +31,45 @@ type Props = {
   onSortChange: (option: SortOption) => void;
 };
 
+// Export items to CSV
+function exportItemsToCSV(items: ResultItem[], filename: string) {
+  const headers = [
+    "Address", "City", "State", "Zip", "Price", "Beds", "Baths", "Sqft",
+    "Price/Sqft", "Equity%", "PropertyType", "YearBuilt", "DaysOnMarket",
+    "Tags", "Lat", "Lng"
+  ];
+
+  const rows = items.map((item) => [
+    `"${item.address}"`,
+    `"${item.city}"`,
+    item.state,
+    item.zip,
+    item.price,
+    item.beds,
+    item.baths,
+    item.sqft,
+    Math.round(item.price / item.sqft),
+    item.equityPct ?? "",
+    item.propertyType,
+    item.yearBuilt ?? "",
+    item.daysOnMarket ?? "",
+    `"${(item.tags ?? []).join("|")}"`,
+    item.lat,
+    item.lng,
+  ]);
+
+  const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  return items.length;
+}
+
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
   { value: "price-desc", label: "Price: High to Low" },
   { value: "price-asc", label: "Price: Low to High" },
@@ -99,9 +138,25 @@ export default function ResultsPanel({
           <div className="p-4 border-b">
             <div className="flex items-center justify-between mb-3">
               <h2 className="font-semibold text-lg">Properties</h2>
-              <span className="text-sm text-muted-foreground">
-                {items.length} result{items.length !== 1 ? "s" : ""}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">
+                  {items.length} result{items.length !== 1 ? "s" : ""}
+                </span>
+                {items.length > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const count = exportItemsToCSV(items, `properties_all_${Date.now()}.csv`);
+                      toast.success(`Exported ${count} properties`);
+                    }}
+                  >
+                    <Download className="w-3 h-3 mr-1" />
+                    Export All
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2">

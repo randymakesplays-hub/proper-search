@@ -142,7 +142,7 @@ export default function GoogleMapView({ items, activeId, hoveredId, onMarkerClic
       {items.map((item) => {
         if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return null;
 
-        const isActive = activeId === item.id;
+        const isActive = activeId === item.id || selectedItem?.id === item.id;
         const isHovered = hoveredId === item.id;
         const isHighlighted = isActive || isHovered;
 
@@ -158,31 +158,28 @@ export default function GoogleMapView({ items, activeId, hoveredId, onMarkerClic
               onMouseLeave={() => onMarkerHover(null)}
               className={`
                 cursor-pointer transform -translate-x-1/2 -translate-y-full
-                transition-all duration-200 hover:scale-110 hover:z-50
-                ${isHighlighted ? "z-40 scale-110" : "z-10"}
+                transition-all duration-150 hover:scale-105 hover:z-50
+                ${isHighlighted ? "z-40 scale-105" : "z-10"}
               `}
             >
               <div
-                className={`
-                  px-2.5 py-1.5 rounded-lg font-semibold text-xs whitespace-nowrap
-                  shadow-lg border-2 transition-all duration-200
-                  ${isActive 
-                    ? "bg-primary text-white border-white shadow-xl" 
-                    : isHovered
-                    ? "bg-primary/90 text-white border-white shadow-xl"
-                    : "bg-white text-gray-900 border-primary/20 hover:border-primary"
-                  }
-                `}
+                className="px-3.5 py-2 rounded-full font-extrabold text-[13px] whitespace-nowrap shadow-md transition-all duration-150"
+                style={{
+                  backgroundColor: isActive ? "#dc2626" : "#16a34a",
+                  color: "white",
+                  minWidth: "52px",
+                  textAlign: "center",
+                  letterSpacing: "-0.01em",
+                }}
               >
                 {formatShortPrice(item.price)}
               </div>
               <div 
-                className={`
-                  w-0 h-0 mx-auto border-l-[6px] border-r-[6px] border-t-[8px] 
-                  border-l-transparent border-r-transparent transition-all duration-200
-                  ${isHighlighted ? "border-t-primary" : "border-t-white"}
-                  -mt-[1px]
-                `}
+                className="w-0 h-0 mx-auto border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent transition-all duration-150"
+                style={{
+                  borderTopColor: isActive ? "#dc2626" : "#16a34a",
+                  marginTop: "-1px",
+                }}
               />
             </div>
           </OverlayView>

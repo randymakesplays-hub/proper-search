@@ -1,0 +1,101 @@
+address,city,state,zip,price,beds,baths,sqft,equity_pct,lat,lng,tags,property_type,year_built,lot_size,price_per_sqft,days_on_market,status,sold_date,sold_price
+123 Ocean Drive,Miami,FL,33139,850000,4,3,2200,45,25.7617,-80.1918,"{absentee,highEquity}",house,1985,5500,386,15,active,,
+456 Collins Ave,Miami,FL,33140,620000,3,2,1800,62,25.7891,-80.1303,"{highEquity}",condo,2005,0,344,22,active,,
+789 Brickell Key Dr,Miami,FL,33131,1250000,4,3.5,2800,38,25.7650,-80.1867,"{absentee}",condo,2015,0,446,8,active,,
+321 Coral Way,Miami,FL,33145,425000,3,2,1500,71,25.7515,-80.2209,"{highEquity,vacant}",house,1962,4200,283,45,active,,
+555 Miami Beach Blvd,Miami,FL,33141,780000,3,2.5,2100,55,25.8531,-80.1219,"{absentee}",townhouse,2010,2800,371,12,active,,
+888 SW 8th St,Miami,FL,33130,340000,2,1,1100,68,25.7656,-80.2096,"{}",condo,1998,0,309,30,active,,
+999 NE 2nd Ave,Miami,FL,33132,520000,2,2,1400,42,25.7814,-80.1897,"{vacant}",condo,2008,0,371,18,active,,
+147 Flagler St,Miami,FL,33130,675000,3,2,1750,58,25.7742,-80.1936,"{highEquity}",townhouse,2000,2200,386,25,active,,
+258 Biscayne Blvd,Miami,FL,33132,925000,4,3,2400,35,25.7825,-80.1889,"{absentee,highEquity}",condo,2018,0,385,10,active,,
+369 SW 1st St,Miami,FL,33130,380000,2,1.5,1200,75,25.7713,-80.1965,"{highEquity,vacant}",condo,1995,0,317,52,active,,
+741 Alton Rd,Miami Beach,FL,33139,1100000,4,3,2600,48,25.7702,-80.1401,"{absentee}",house,2012,6000,423,6,active,,
+852 Lincoln Rd,Miami Beach,FL,33139,890000,3,2.5,2000,52,25.7908,-80.1349,"{highEquity}",townhouse,2007,3200,445,14,active,,
+963 Washington Ave,Miami Beach,FL,33139,550000,2,2,1350,60,25.7821,-80.1348,"{vacant}",condo,2003,0,407,28,active,,
+159 Espanola Way,Miami Beach,FL,33139,720000,3,2,1650,44,25.7865,-80.1322,"{}",townhouse,2001,2500,436,20,active,,
+267 Ocean Blvd,Miami Beach,FL,33140,1450000,5,4,3200,32,25.8123,-80.1278,"{absentee,highEquity}",house,2016,7500,453,4,active,,
+378 Indian Creek Dr,Miami Beach,FL,33140,980000,4,3,2350,50,25.8201,-80.1265,"{highEquity}",house,2009,5800,417,16,active,,
+489 Pine Tree Dr,Miami Beach,FL,33140,830000,3,2.5,2050,55,25.8156,-80.1298,"{absentee}",house,2004,5200,405,22,active,,
+591 Sunset Dr,Miami Beach,FL,33139,650000,3,2,1700,63,25.7689,-80.1456,"{highEquity,vacant}",townhouse,1999,2800,382,35,active,,
+632 Bay Rd,Miami Beach,FL,33139,475000,2,1.5,1250,70,25.7756,-80.1389,"{}",condo,1997,0,380,42,active,,
+743 Meridian Ave,Miami Beach,FL,33139,580000,2,2,1450,58,25.7845,-80.1367,"{vacant}",condo,2002,0,400,26,active,,
+100 Hollywood Blvd,Hollywood,FL,33020,420000,3,2,1600,65,26.0112,-80.1495,"{highEquity}",house,1978,4800,263,38,active,,
+200 N Ocean Dr,Hollywood,FL,33019,685000,3,2.5,1900,48,26.0234,-80.1189,"{absentee}",condo,2011,0,361,15,active,,
+300 S Federal Hwy,Hollywood,FL,33020,315000,2,1.5,1200,72,26.0089,-80.1423,"{highEquity,vacant}",house,1965,3600,263,55,active,,
+400 Hollywood Beach,Hollywood,FL,33019,780000,4,3,2300,42,26.0178,-80.1165,"{absentee}",townhouse,2014,3200,339,12,active,,
+500 Young Circle,Hollywood,FL,33020,525000,3,2,1750,56,26.0156,-80.1478,"{}",house,1992,5000,300,28,active,,
+600 A1A Hwy,Fort Lauderdale,FL,33304,920000,4,3,2450,40,26.1224,-80.1078,"{absentee,highEquity}",house,2008,6200,376,10,active,,
+700 Las Olas Blvd,Fort Lauderdale,FL,33301,1150000,4,3.5,2800,35,26.1186,-80.1367,"{absentee}",townhouse,2017,4000,411,5,active,,
+800 SE 17th St,Fort Lauderdale,FL,33316,680000,3,2,1850,52,26.1012,-80.1256,"{highEquity}",condo,2006,0,368,18,active,,
+900 Sunrise Blvd,Fort Lauderdale,FL,33304,545000,3,2,1700,60,26.1423,-80.1345,"{vacant}",house,1988,4500,321,32,active,,
+1000 E Oakland Park,Fort Lauderdale,FL,33334,395000,2,2,1350,68,26.1656,-80.1189,"{}",condo,2001,0,293,40,active,,
+1100 N Federal Hwy,Fort Lauderdale,FL,33301,485000,2,1.5,1400,62,26.1312,-80.1378,"{highEquity}",condo,2004,0,346,25,active,,
+1200 Bayview Dr,Fort Lauderdale,FL,33304,750000,3,2.5,2100,47,26.1189,-80.0978,"{absentee}",house,2010,5500,357,14,active,,
+1300 SW 2nd Ave,Fort Lauderdale,FL,33301,620000,3,2,1800,54,26.1089,-80.1456,"{highEquity,vacant}",townhouse,2003,3000,344,30,active,,
+1400 Broward Blvd,Fort Lauderdale,FL,33312,365000,2,1,1150,73,26.1223,-80.1567,"{}",condo,1996,0,317,48,active,,
+1500 NE 4th Ave,Fort Lauderdale,FL,33301,890000,4,3,2350,38,26.1245,-80.1289,"{absentee,highEquity}",house,2015,6000,379,8,active,,
+2100 Peachtree St,Atlanta,GA,30309,580000,3,2.5,2100,52,33.7891,-84.3856,"{highEquity}",townhouse,2008,2500,276,18,active,,
+2200 Piedmont Ave,Atlanta,GA,30324,420000,3,2,1800,65,33.8012,-84.3678,"{absentee}",house,1985,5200,233,28,active,,
+2300 Ponce de Leon,Atlanta,GA,30308,725000,4,3,2400,45,33.7756,-84.3512,"{highEquity,vacant}",house,2012,6800,302,12,active,,
+2400 Monroe Dr,Atlanta,GA,30324,340000,2,1.5,1300,70,33.7967,-84.3589,"{}",condo,1999,0,262,42,active,,
+2500 Buford Hwy,Atlanta,GA,30329,485000,3,2,1650,58,33.8234,-84.3345,"{absentee}",house,2001,4500,294,22,active,,
+2600 Northside Dr,Atlanta,GA,30318,650000,4,2.5,2200,48,33.7989,-84.4123,"{highEquity}",house,2006,5800,295,15,active,,
+2700 West Paces,Atlanta,GA,30327,1250000,5,4,3500,32,33.8456,-84.3923,"{absentee,highEquity}",house,2018,9000,357,6,active,,
+2800 Roswell Rd,Atlanta,GA,30305,550000,3,2,1750,55,33.8378,-84.3756,"{vacant}",townhouse,2004,3000,314,25,active,,
+2900 Lenox Rd,Atlanta,GA,30326,890000,4,3,2600,40,33.8489,-84.3589,"{absentee}",condo,2016,0,342,10,active,,
+3000 Pharr Rd,Atlanta,GA,30305,465000,2,2,1450,62,33.8145,-84.3678,"{highEquity}",condo,2007,0,321,32,active,,
+3100 Wilshire Blvd,Los Angeles,CA,90010,1250000,3,2.5,2000,35,34.0623,-118.3089,"{absentee}",condo,2015,0,625,8,active,,
+3200 Sunset Blvd,Los Angeles,CA,90028,895000,3,2,1800,42,34.0978,-118.3256,"{highEquity}",house,2005,4500,497,14,active,,
+3300 Hollywood Blvd,Los Angeles,CA,90028,720000,2,2,1500,50,34.1012,-118.3389,"{}",condo,2010,0,480,22,active,,
+3400 Santa Monica Blvd,Los Angeles,CA,90029,1450000,4,3,2400,30,34.0912,-118.2956,"{absentee,highEquity}",house,2018,6000,604,5,active,,
+3500 Venice Blvd,Los Angeles,CA,90019,650000,3,2,1650,55,34.0456,-118.3512,"{highEquity,vacant}",house,1975,5200,394,35,active,,
+3600 Melrose Ave,Los Angeles,CA,90029,980000,3,2.5,1900,38,34.0834,-118.3145,"{absentee}",townhouse,2012,3200,516,12,active,,
+3700 La Brea Ave,Los Angeles,CA,90036,785000,3,2,1750,48,34.0689,-118.3445,"{highEquity}",house,2000,4800,449,20,active,,
+3800 Western Ave,Los Angeles,CA,90020,520000,2,1.5,1200,62,34.0545,-118.3089,"{}",condo,2003,0,433,30,active,,
+3900 Vermont Ave,Los Angeles,CA,90027,680000,3,2,1600,52,34.1078,-118.2912,"{vacant}",house,1988,4200,425,25,active,,
+4000 Beverly Blvd,Los Angeles,CA,90004,1100000,4,3,2200,40,34.0756,-118.3234,"{absentee,highEquity}",house,2014,5500,500,10,active,,
+4100 5th Ave,New York,NY,10028,2500000,3,2.5,1800,25,40.7789,-73.9634,"{absentee}",condo,2016,0,1389,6,active,,
+4200 Park Ave,New York,NY,10035,1850000,3,2,1600,32,40.7923,-73.9412,"{highEquity}",condo,2012,0,1156,10,active,,
+4300 Madison Ave,New York,NY,10021,3200000,4,3,2200,20,40.7689,-73.9656,"{absentee,highEquity}",condo,2019,0,1455,4,active,,
+4400 Lexington Ave,New York,NY,10022,1450000,2,2,1400,38,40.7567,-73.9689,"{}",condo,2008,0,1036,18,active,,
+4500 Amsterdam Ave,New York,NY,10025,980000,2,1.5,1100,45,40.8012,-73.9645,"{highEquity}",condo,2005,0,891,24,active,,
+4600 Broadway,New York,NY,10024,1650000,3,2,1500,35,40.7878,-73.9767,"{absentee}",condo,2010,0,1100,12,active,,
+4700 Columbus Ave,New York,NY,10025,1250000,2,2,1300,42,40.7945,-73.9689,"{vacant}",condo,2007,0,962,20,active,,
+4800 Central Park W,New York,NY,10025,2100000,3,2.5,1700,28,40.7867,-73.9712,"{highEquity}",condo,2015,0,1235,8,active,,
+4900 West End Ave,New York,NY,10025,1350000,3,2,1450,40,40.7912,-73.9823,"{absentee,highEquity}",condo,2011,0,931,15,active,,
+5000 Riverside Dr,New York,NY,10024,1780000,3,2.5,1650,33,40.7834,-73.9845,"{}",condo,2014,0,1079,10,active,,
+123 Ocean Drive,Miami,FL,33139,795000,4,3,2150,0,25.7612,-80.1912,"{absentee}",house,1982,5400,370,0,sold,2025-11-15,795000
+456 Collins Ave,Miami,FL,33140,585000,3,2,1750,0,25.7885,-80.1298,"{highEquity}",condo,2004,0,334,0,sold,2025-10-22,585000
+789 Brickell Key Dr,Miami,FL,33131,1180000,4,3.5,2750,0,25.7645,-80.1862,"{}",condo,2014,0,429,0,sold,2025-12-05,1180000
+321 Coral Way,Miami,FL,33145,398000,3,2,1480,0,25.7510,-80.2204,"{highEquity}",house,1960,4100,269,0,sold,2025-09-18,398000
+555 Surf Lane,Miami Beach,FL,33139,725000,3,2.5,2000,0,25.7695,-80.1395,"{absentee}",townhouse,2008,2700,363,0,sold,2025-11-02,725000
+888 Bay View Dr,Miami,FL,33131,505000,2,2,1380,0,25.7660,-80.1875,"{}",condo,2006,0,366,0,sold,2025-10-10,505000
+999 Sunrise Blvd,Miami Beach,FL,33140,890000,4,3,2300,0,25.8126,-80.1282,"{highEquity}",house,2011,6100,387,0,sold,2025-12-20,890000
+147 Palm Ave,Miami,FL,33139,665000,3,2,1700,0,25.7738,-80.1930,"{}",townhouse,1998,2100,391,0,sold,2025-09-28,665000
+258 Waterfront Pkwy,Miami,FL,33132,915000,4,3,2380,0,25.7820,-80.1884,"{absentee}",condo,2017,0,384,0,sold,2025-11-25,915000
+369 Biscayne Way,Miami,FL,33130,365000,2,1.5,1180,0,25.7708,-80.1960,"{vacant}",condo,1993,0,309,0,sold,2025-10-05,365000
+741 Shore Dr,Miami Beach,FL,33139,1050000,4,3,2550,0,25.7698,-80.1396,"{highEquity}",house,2010,5900,412,0,sold,2025-12-12,1050000
+852 Art Deco Blvd,Miami Beach,FL,33139,865000,3,2.5,1980,0,25.7902,-80.1344,"{}",townhouse,2005,3100,437,0,sold,2025-09-30,865000
+963 South Beach Ave,Miami Beach,FL,33139,535000,2,2,1320,0,25.7815,-80.1342,"{vacant}",condo,2002,0,405,0,sold,2025-11-08,535000
+159 Ocean Walk,Miami Beach,FL,33139,705000,3,2,1620,0,25.7860,-80.1318,"{}",townhouse,2000,2400,435,0,sold,2025-10-28,705000
+267 Millionaire Row,Miami Beach,FL,33140,1395000,5,4,3150,0,25.8118,-80.1272,"{absentee}",house,2015,7400,443,0,sold,2025-12-18,1395000
+600 Beach Rd,Fort Lauderdale,FL,33304,885000,4,3,2400,0,26.1220,-80.1074,"{highEquity}",house,2007,6100,369,0,sold,2025-11-12,885000
+700 Intracoastal Dr,Fort Lauderdale,FL,33301,1120000,4,3.5,2750,0,26.1182,-80.1362,"{absentee}",townhouse,2016,3900,407,0,sold,2025-10-20,1120000
+800 Harbor View,Fort Lauderdale,FL,33316,655000,3,2,1820,0,26.1008,-80.1251,"{}",condo,2005,0,360,0,sold,2025-12-02,655000
+900 Sunrise Point,Fort Lauderdale,FL,33304,525000,3,2,1680,0,26.1418,-80.1340,"{vacant}",house,1986,4400,313,0,sold,2025-09-25,525000
+1000 Oakland Estates,Fort Lauderdale,FL,33334,378000,2,2,1330,0,26.1652,-80.1185,"{}",condo,2000,0,284,0,sold,2025-11-05,378000
+2100 Midtown St,Atlanta,GA,30309,565000,3,2.5,2080,0,33.7886,-84.3851,"{highEquity}",townhouse,2007,2450,272,0,sold,2025-10-15,565000
+2200 Historic District,Atlanta,GA,30324,405000,3,2,1780,0,33.8008,-84.3673,"{absentee}",house,1983,5100,228,0,sold,2025-12-08,405000
+2300 Virginia Highland,Atlanta,GA,30308,710000,4,3,2380,0,33.7751,-84.3507,"{}",house,2011,6700,298,0,sold,2025-09-20,710000
+2400 Inman Park,Atlanta,GA,30324,325000,2,1.5,1280,0,33.7962,-84.3584,"{}",condo,1997,0,254,0,sold,2025-11-18,325000
+2500 Buckhead Dr,Atlanta,GA,30329,470000,3,2,1630,0,33.8229,-84.3340,"{highEquity}",house,2000,4400,288,0,sold,2025-10-30,470000
+3100 Downtown LA,Los Angeles,CA,90010,1220000,3,2.5,1980,0,34.0618,-118.3084,"{absentee}",condo,2014,0,616,0,sold,2025-11-22,1220000
+3200 Silver Lake,Los Angeles,CA,90028,875000,3,2,1780,0,34.0973,-118.3251,"{highEquity}",house,2004,4400,492,0,sold,2025-10-08,875000
+3300 Los Feliz,Los Angeles,CA,90028,705000,2,2,1480,0,34.1007,-118.3384,"{}",condo,2009,0,476,0,sold,2025-12-15,705000
+3400 West Hollywood,Los Angeles,CA,90029,1420000,4,3,2380,0,34.0907,-118.2951,"{absentee}",house,2017,5900,597,0,sold,2025-09-12,1420000
+3500 Mid City,Los Angeles,CA,90019,635000,3,2,1630,0,34.0451,-118.3507,"{vacant}",house,1973,5100,390,0,sold,2025-11-28,635000
+4100 Upper East Side,New York,NY,10028,2450000,3,2.5,1780,0,40.7784,-73.9629,"{absentee}",condo,2015,0,1377,0,sold,2025-10-25,2450000
+4200 Harlem,New York,NY,10035,1815000,3,2,1580,0,40.7918,-73.9407,"{highEquity}",condo,2011,0,1149,0,sold,2025-12-10,1815000
+4300 Lenox Hill,New York,NY,10021,3150000,4,3,2180,0,40.7684,-73.9651,"{}",condo,2018,0,1445,0,sold,2025-09-15,3150000
+4400 Midtown East,New York,NY,10022,1420000,2,2,1380,0,40.7562,-73.9684,"{}",condo,2007,0,1029,0,sold,2025-11-10,1420000
+4500 Morningside,New York,NY,10025,965000,2,1.5,1080,0,40.8007,-73.9640,"{highEquity}",condo,2004,0,894,0,sold,2025-10-18,965000
