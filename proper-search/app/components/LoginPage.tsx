@@ -41,20 +41,20 @@ export default function LoginPage({ onLogin }: Props) {
 
       {/* Login Card */}
       <div className="relative z-10 w-full max-w-md mx-4">
-        <div className="backdrop-blur-xl bg-white/95 rounded-2xl shadow-2xl p-8 border border-white/20">
+        <div className="backdrop-blur-md bg-white/10 rounded-3xl shadow-2xl p-8 border border-white/20 ring-1 ring-white/10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="mb-4">
+            <div className="mb-4 p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
               <Image
                 src="/proper-search-logo.png"
                 alt="ProperSearch"
-                width={64}
-                height={64}
+                width={56}
+                height={56}
                 className="drop-shadow-lg"
               />
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">ProperSearch</h1>
-            <p className="text-sm text-gray-500 mt-1">Property Search Platform</p>
+            <h1 className="text-2xl font-bold text-white drop-shadow-lg">ProperSearch</h1>
+            <p className="text-sm text-white/70 mt-1">Property Search Platform</p>
           </div>
 
           {/* Form */}
@@ -65,7 +65,7 @@ export default function LoginPage({ onLogin }: Props) {
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="h-12 px-4 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="h-12 px-4 bg-white/10 backdrop-blur-sm border-white/20 rounded-xl text-white placeholder:text-white/50 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white/20 transition-all"
               />
             </div>
             <div>
@@ -74,14 +74,14 @@ export default function LoginPage({ onLogin }: Props) {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="h-12 px-4 bg-gray-50 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+                className="h-12 px-4 bg-white/10 backdrop-blur-sm border-white/20 rounded-xl text-white placeholder:text-white/50 focus:ring-2 focus:ring-primary focus:border-transparent focus:bg-white/20 transition-all"
               />
             </div>
 
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg shadow-primary/30 transition-all duration-200"
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-semibold rounded-xl shadow-lg shadow-primary/40 hover:shadow-primary/60 hover:scale-[1.02] transition-all duration-200"
             >
               {isLoading ? (
                 <div className="flex items-center gap-2">
@@ -97,10 +97,10 @@ export default function LoginPage({ onLogin }: Props) {
           {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="w-full border-t border-white/20" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-400">or</span>
+              <span className="px-4 bg-transparent text-white/50">or</span>
             </div>
           </div>
 
@@ -109,7 +109,7 @@ export default function LoginPage({ onLogin }: Props) {
             type="button"
             variant="outline"
             onClick={onLogin}
-            className="w-full h-12 border-gray-200 hover:bg-gray-50 rounded-xl font-medium transition-all duration-200"
+            className="w-full h-12 bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 rounded-xl font-medium text-white transition-all duration-200"
           >
             <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
@@ -136,20 +136,20 @@ export default function LoginPage({ onLogin }: Props) {
           <div className="text-center mt-6">
             <button
               type="button"
-              className="text-sm text-gray-500 hover:text-primary transition-colors"
+              className="text-sm text-white/60 hover:text-white transition-colors"
             >
               Forgot password?
             </button>
           </div>
 
           {/* Sign Up Link */}
-          <div className="text-center mt-4 pt-4 border-t border-gray-100">
-            <span className="text-sm text-gray-500">
+          <div className="text-center mt-4 pt-4 border-t border-white/10">
+            <span className="text-sm text-white/60">
               Don't have an account?{" "}
               <button
                 type="button"
                 onClick={onLogin}
-                className="text-primary font-semibold hover:underline"
+                className="text-primary font-semibold hover:text-primary/80 transition-colors"
               >
                 Sign up
               </button>
@@ -158,7 +158,7 @@ export default function LoginPage({ onLogin }: Props) {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-white/70 text-sm mt-6">
+        <p className="text-center text-white/80 text-sm mt-6 drop-shadow-lg">
           Tampa Bay's Premier Property Search Platform
         </p>
       </div>
