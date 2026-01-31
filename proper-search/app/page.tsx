@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@supabase/supabase-js";
 
 import LeftSidebar, { type PageId } from "./components/LeftSidebar";
 import SearchBar from "./components/SearchBar";
@@ -48,13 +50,32 @@ function saveFavorites(ids: string[]) {
   }
 }
 
-// User info (would come from auth in real app)
-const USER_NAME = "Randy Wilson";
-const USER_EMAIL = "rawrealestate101@gmail.com";
-
 export default function Page() {
-  // Authentication state (demo mode - no real auth)
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Authentication state
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Get user info from Supabase user object
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+  const userEmail = user?.email || "";
 
   // Current page/view
   const [activePage, setActivePage] = useState<PageId>("search");
@@ -295,7 +316,7 @@ export default function Page() {
   const renderMainContent = () => {
     switch (activePage) {
       case "account":
-        return <AccountPage userName={USER_NAME} userEmail={USER_EMAIL} />;
+        return <AccountPage userName={userName} userEmail={userEmail} />;
 
       case "myProperties":
         return (
@@ -387,16 +408,28 @@ export default function Page() {
     }
   };
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   // Show login page if not logged in
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={() => setIsLoggedIn(true)} />;
+  if (!user) {
+    return <LoginPage onLogin={() => {}} />;
   }
 
   return (
     <div className="h-screen w-screen flex overflow-hidden bg-background">
       {/* Left Sidebar */}
       <LeftSidebar 
-        userName={USER_NAME} 
+        userName={userName} 
         activePage={activePage}
         onPageChange={setActivePage}
       />

@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 export type PageId = "search" | "myProperties" | "contacts" | "campaigns" | "dialer" | "account";
 
@@ -32,6 +34,10 @@ type Props = {
 };
 
 export default function LeftSidebar({ userName = "User", activePage, onPageChange }: Props) {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+  };
   const [collapsed, setCollapsed] = useState(false);
 
   const mainNavItems: NavItem[] = [
@@ -109,10 +115,11 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
         
         {/* Log Out - separate from nav */}
         <button
+          onClick={handleLogout}
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
             collapsed && "justify-center px-2",
-            "text-muted-foreground hover:bg-muted hover:text-foreground"
+            "text-muted-foreground hover:bg-muted hover:text-foreground hover:text-red-500"
           )}
           title={collapsed ? "Log Out" : undefined}
         >
