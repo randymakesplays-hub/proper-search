@@ -154,17 +154,17 @@ export default function LoginPage({ onLogin }: Props) {
         <div className="backdrop-blur-md bg-white/10 rounded-3xl shadow-2xl p-8 border border-white/20 ring-1 ring-white/10">
           {/* Logo */}
           <div className="flex flex-col items-center mb-8">
-            <div className="mb-4 p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
+            <div className="mb-3">
               <Image
                 src="/proper-search-logo.png"
                 alt="ProperSearch"
-                width={56}
-                height={56}
+                width={220}
+                height={107}
                 className="drop-shadow-lg"
+                priority
               />
             </div>
-            <h1 className="text-2xl font-bold text-white drop-shadow-lg">ProperSearch</h1>
-            <p className="text-sm text-white/70 mt-1">
+            <p className="text-sm text-white/70">
               {mode === "login" && "Welcome back"}
               {mode === "signup" && "Create your account"}
               {mode === "forgot" && "Reset your password"}

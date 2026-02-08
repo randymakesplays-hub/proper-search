@@ -12,14 +12,15 @@ import {
   HelpCircle,
   MessageCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from "lucide-react";
 import { useState } from "react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 
-export type PageId = "search" | "myProperties" | "contacts" | "campaigns" | "dialer" | "account";
+export type PageId = "search" | "myProperties" | "contacts" | "campaigns" | "dialer" | "account" | "admin";
 
 type NavItem = {
   id: PageId;
@@ -46,6 +47,7 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
     { id: "contacts", icon: <Users className="w-5 h-5" />, label: "Contacts" },
     { id: "campaigns", icon: <Megaphone className="w-5 h-5" />, label: "Campaigns" },
     { id: "dialer", icon: <Phone className="w-5 h-5" />, label: "Dialer" },
+    { id: "admin", icon: <Shield className="w-5 h-5" />, label: "Admin" },
     { id: "account", icon: <Settings className="w-5 h-5" />, label: "Account" },
   ];
 
@@ -57,7 +59,7 @@ export default function LeftSidebar({ userName = "User", activePage, onPageChang
   return (
     <div 
       className={cn(
-        "h-full bg-white border-r flex flex-col transition-all duration-300",
+        "h-full bg-white border-r flex flex-col transition-all duration-300 z-30 shrink-0",
         collapsed ? "w-16" : "w-56"
       )}
     >

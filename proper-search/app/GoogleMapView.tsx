@@ -156,29 +156,41 @@ export default function GoogleMapView({ items, activeId, hoveredId, onMarkerClic
               onClick={() => handleMarkerClick(item)}
               onMouseEnter={() => onMarkerHover(item.id)}
               onMouseLeave={() => onMarkerHover(null)}
-              className={`
-                cursor-pointer transform -translate-x-1/2 -translate-y-full
-                transition-all duration-150 hover:scale-105 hover:z-50
-                ${isHighlighted ? "z-40 scale-105" : "z-10"}
-              `}
+              style={{
+                cursor: 'pointer',
+                transform: 'translate(-50%, -100%)',
+                transition: 'all 150ms',
+                zIndex: isHighlighted ? 40 : 10,
+                scale: isHighlighted ? '1.05' : '1',
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.scale = '1.05'; e.currentTarget.style.zIndex = '50'; }}
+              onMouseOut={(e) => { e.currentTarget.style.scale = isHighlighted ? '1.05' : '1'; e.currentTarget.style.zIndex = isHighlighted ? '40' : '10'; }}
             >
               <div
-                className="px-3.5 py-2 rounded-full font-extrabold text-[13px] whitespace-nowrap shadow-md transition-all duration-150"
                 style={{
                   backgroundColor: isActive ? "#dc2626" : "#16a34a",
                   color: "white",
-                  minWidth: "52px",
+                  padding: "4px 8px",
+                  borderRadius: "9999px",
+                  fontWeight: 600,
+                  fontSize: "11px",
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
                   textAlign: "center",
-                  letterSpacing: "-0.01em",
+                  display: "inline-block",
+                  minWidth: "40px",
                 }}
               >
                 {formatShortPrice(item.price)}
               </div>
               <div 
-                className="w-0 h-0 mx-auto border-l-[5px] border-r-[5px] border-t-[6px] border-l-transparent border-r-transparent transition-all duration-150"
                 style={{
-                  borderTopColor: isActive ? "#dc2626" : "#16a34a",
-                  marginTop: "-1px",
+                  width: 0,
+                  height: 0,
+                  borderLeft: "5px solid transparent",
+                  borderRight: "5px solid transparent",
+                  borderTop: `6px solid ${isActive ? "#dc2626" : "#16a34a"}`,
+                  margin: "-1px auto 0 auto",
                 }}
               />
             </div>

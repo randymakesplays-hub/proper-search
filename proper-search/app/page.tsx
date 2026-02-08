@@ -14,6 +14,9 @@ import FilterPanel from "./components/FilterPanel";
 import AccountPage from "./components/AccountPage";
 import MyPropertiesPage from "./components/MyPropertiesPage";
 import LoginPage from "./components/LoginPage";
+import MarketInsightsPanel from "./components/MarketInsightsPanel";
+import AdminPage from "./components/AdminPage";
+import PendingApprovalPage from "./components/PendingApprovalPage";
 
 import type { Filters, ResultItem, SortOption } from "./types";
 import { loadLastSearch, saveLastSearch } from "./components/SearchBar";
@@ -53,37 +56,61 @@ function saveFavorites(ids: string[]) {
 export default function Page() {
   // Authentication state
   const [user, setUser] = useState<User | null>(null);
+  const [userStatus, setUserStatus] = useState<"pending" | "approved" | "rejected" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Check for existing session on mount
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      // Handle invalid refresh token by signing out
-      if (error?.message?.includes('Refresh Token') || error?.message?.includes('refresh_token')) {
-        console.warn('Invalid session, signing out:', error.message);
-        supabase.auth.signOut();
-        setUser(null);
-      } else {
-        setUser(session?.user ?? null);
+  // Check user approval status
+  const checkUserStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("user_profiles")
+        .select("status")
+        .eq("id", userId)
+        .single();
+      
+      if (error) {
+        console.error("Error checking user status:", error);
+        // If no profile exists, assume approved (for existing users)
+        setUserStatus("approved");
+        return;
       }
-      setIsLoading(false);
-    }).catch((err) => {
-      console.warn('Auth error, signing out:', err);
-      supabase.auth.signOut();
+      
+      setUserStatus(data?.status || "approved");
+    } catch (err) {
+      console.error("Error checking user status:", err);
+      setUserStatus("approved");
+    }
+  };
+
+  // Always start with login page - sign out any existing session on mount
+  useEffect(() => {
+    // Sign out to always show login page first
+    supabase.auth.signOut().then(() => {
       setUser(null);
+      setUserStatus(null);
+      setIsLoading(false);
+    }).catch(() => {
+      setUser(null);
+      setUserStatus(null);
       setIsLoading(false);
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         // Handle token refresh errors
         if (event === 'TOKEN_REFRESHED' && !session) {
           supabase.auth.signOut();
           setUser(null);
+          setUserStatus(null);
         } else {
           setUser(session?.user ?? null);
+          // Check user status when they sign in
+          if (session?.user) {
+            await checkUserStatus(session.user.id);
+          } else {
+            setUserStatus(null);
+          }
         }
       }
     );
@@ -363,6 +390,9 @@ export default function Page() {
           />
         );
 
+      case "admin":
+        return <AdminPage currentUserEmail={userEmail} />;
+
       case "contacts":
       case "campaigns":
       case "dialer":
@@ -411,7 +441,7 @@ export default function Page() {
               />
 
               {/* Map */}
-              <div className="flex-1 relative">
+              <div className="flex-1 relative overflow-hidden">
                 <MapPanel
                   items={displayItems}
                   activeId={activeId}
@@ -421,6 +451,12 @@ export default function Page() {
                   fitBoundsKey={fitBoundsKey}
                 />
               </div>
+
+              {/* Market Insights Panel (bottom pull-up) - positioned over map */}
+              <MarketInsightsPanel
+                items={displayItems}
+                searchLocation={filters.city || debouncedQuery || undefined}
+              />
 
               {/* Results Panel (right side) */}
               <ResultsPanel
@@ -462,6 +498,34 @@ export default function Page() {
   // Show login page if not logged in
   if (!user) {
     return <LoginPage onLogin={() => {}} />;
+  }
+
+  // Show pending approval page if user hasn't been approved yet
+  if (userStatus === "pending") {
+    return <PendingApprovalPage userEmail={userEmail} />;
+  }
+
+  // Show rejected message if user was rejected
+  if (userStatus === "rejected") {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+        <div className="max-w-md text-center p-8 bg-white rounded-2xl shadow-2xl">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✕</span>
+          </div>
+          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
+          <p className="text-muted-foreground mb-6">
+            Your account request was not approved. Please contact support if you believe this is an error.
+          </p>
+          <button
+            onClick={() => supabase.auth.signOut().then(() => window.location.reload())}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

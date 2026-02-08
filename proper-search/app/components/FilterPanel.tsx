@@ -52,8 +52,8 @@ export default function FilterPanel({ filters: initialFilters, onApply, onClear,
   return (
     <div
       className={cn(
-        "absolute left-0 top-0 bottom-0 w-80 bg-white border-r shadow-lg z-20 transition-transform duration-300",
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        "absolute left-0 top-0 bottom-0 w-72 bg-white border-r shadow-lg z-10 transition-transform duration-300",
+        isOpen ? "translate-x-0" : "-translate-x-full pointer-events-none"
       )}
     >
       <div className="h-full flex flex-col">
